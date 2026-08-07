@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Database SDM - GFI (Standalone)</title>
+  <style>
+    :root{--bg:#0f172a;--panel:#111827;--panel2:#1f2937;--line:#334155;--text:#e5e7eb;--muted:#94a3b8;--brand:#22c55e;--brand2:#16a34a;--danger:#ef4444;--warn:#f59e0b;--blue:#3b82f6}
+    *{box-sizing:border-box}
+    body{margin:0;font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--text)}
+    header{background:linear-gradient(135deg,#065f46,#064e3b);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;position:sticky;top:0;z-index:10}
+    header h1{font-size:18px;margin:0}
+    header .sub{font-size:12px;color:#a7f3d0}
+    .badge{font-size:11px;padding:3px 8px;border-radius:20px;background:#052e16;color:#86efac;display:inline-flex;align-items:center;gap:6px}
+    .dot{width:8px;height:8px;border-radius:50%;background:#64748b}
+    .dot.live{background:var(--brand);box-shadow:0 0 8px var(--brand)}
+    .toolbar{display:flex;gap:8px;flex-wrap:wrap;padding:14px 20px;align-items:center}
+    input,select,button,textarea{font:inherit}
+    .input{background:var(--panel);border:1px solid var(--line);color:var(--text);border-radius:8px;padding:9px 12px;outline:none}
+    .input:focus{border-color:var(--brand)}
+    .btn{border:none;border-radius:8px;padding:9px 14px;cursor:pointer;font-weight:600;color:#fff;background:var(--panel2)}
+    .btn.primary{background:var(--brand2)}.btn.primary:hover{background:var(--brand)}
+    .btn.blue{background:var(--blue)}.btn.ghost{background:transparent;border:1px solid var(--line)}
+    .btn:hover{filter:brightness(1.08)}
+    .grow{flex:1;min-width:180px}
+    .wrap{padding:0 20px 40px}
+    .tablewrap{overflow:auto;border:1px solid var(--line);border-radius:10px;background:var(--panel)}
+    table{border-collapse:collapse;width:100%;font-size:13px;white-space:nowrap}
+    th,td{padding:9px 12px;border-bottom:1px solid var(--line);text-align:left}
+    th{background:var(--panel2);position:sticky;top:0;font-size:12px;text-transform:uppercase;letter-spacing:.3px;color:#cbd5e1}
+    tr:hover td{background:#0b1220}
+    .actions{display:flex;gap:6px}
+    .icon-btn{border:none;border-radius:6px;padding:5px 9px;cursor:pointer;color:#fff;font-size:12px}
+    .muted{color:var(--muted)}.count{font-size:12px;color:var(--muted);padding:8px 2px}
+    .overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:flex-start;justify-content:center;padding:30px 16px;z-index:50;overflow:auto}
+    .overlay.show{display:flex}
+    .modal{background:var(--panel);border:1px solid var(--line);border-radius:14px;width:100%;max-width:760px}
+    .modal h2{margin:0;padding:16px 20px;border-bottom:1px solid var(--line);font-size:16px}
+    .modal .body{padding:16px 20px;display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .field{display:flex;flex-direction:column;gap:5px}.field.full{grid-column:1/-1}
+    .field label{font-size:12px;color:var(--muted)}
+    .modal .foot{padding:14px 20px;border-top:1px solid var(--line);display:flex;justify-content:flex-end;gap:8px}
+    .toast{position:fixed;bottom:20px;right:20px;background:var(--panel2);border:1px solid var(--line);border-left:4px solid var(--brand);padding:12px 16px;border-radius:8px;z-index:100;max-width:360px;display:none}
+    .toast.err{border-left-color:var(--danger)}.toast.show{display:block}
+    .loading{padding:40px;text-align:center;color:var(--muted)}
+    .setup{padding:16px 20px;background:#052e16;border:1px solid #14532d;border-radius:10px;margin:14px 20px;font-size:13px}
+    @media(max-width:640px){.modal .body{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>📋 Database SDM — GFI</h1>
+      <div class="sub">Standalone frontend • Google Apps Script API + Firebase Realtime Database</div>
+    </div>
+    <span class="badge"><span id="liveDot" class="dot"></span><span id="liveText">—</span></span>
+  </header>
+
+  <div class="setup" id="setupBox">
+    <b>Konfigurasi API</b> — tempel URL Web App Apps Script Anda (diakhiri <code>/exec</code>):
+    <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+      <input id="apiUrl" class="input grow" placeholder="https://script.google.com/macros/s/XXXX/exec">
+      <input id="apiKey" class="input" placeholder="API key (opsional)">
+      <button class="btn primary" onclick="saveApi()">Simpan &amp; Muat</button>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <input id="search" class="input grow" placeholder="🔎 Cari…" oninput="renderTable()">
+    <button class="btn primary" onclick="openCreate()">➕ Tambah</button>
+    <button class="btn blue" onclick="openAddColumn()">🧩 Kolom Baru</button>
+    <button class="btn ghost" onclick="loadAll(true)">🔄 Muat Ulang</button>
+  </div>
+
+  <div class="wrap">
+    <div class="count" id="count"></div>
+    <div class="tablewrap">
+      <table><thead><tr id="thead"></tr></thead><tbody id="tbody"><tr><td class="loading">Isi URL API di atas untuk memulai.</td></tr></tbody></table>
+    </div>
+  </div>
+
+  <div class="overlay" id="modal"><div class="modal">
+    <h2 id="modalTitle">Tambah Karyawan</h2>
+    <div class="body" id="modalBody"></div>
+    <div class="foot">
+      <button class="btn ghost" onclick="closeModal()">Batal</button>
+      <button class="btn primary" id="saveBtn" onclick="saveRecord()">💾 Simpan</button>
+    </div>
+  </div></div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    var API_URL = localStorage.getItem('sdm_api')||'';
+    var API_KEY = localStorage.getItem('sdm_key')||'';
+    var COLUMNS=[], ROWS=[], EDIT_ID=null, CONFIG=null;
+
+    if(API_URL) document.getElementById('apiUrl').value=API_URL;
+    if(API_KEY) document.getElementById('apiKey').value=API_KEY;
+
+    function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+    function toast(m,e){var t=document.getElementById('toast');t.textContent=m;t.className='toast show'+(e?' err':'');setTimeout(function(){t.className='toast';},3500);}
+
+    function call(action, payload){
+      if(!API_URL) return Promise.reject(new Error('URL API belum diisi.'));
+      var body=Object.assign({action:action, apiKey:API_KEY}, payload||{});
+      return fetch(API_URL, {
+        method:'POST',
+        headers:{'Content-Type':'text/plain;charset=utf-8'}, // hindari CORS preflight
+        body:JSON.stringify(body)
+      }).then(function(r){return r.json();}).then(function(j){
+        if(!j.ok) throw new Error(j.error||'Kesalahan tidak diketahui');
+        return j.data;
+      });
+    }
+
+    function saveApi(){
+      API_URL=document.getElementById('apiUrl').value.trim();
+      API_KEY=document.getElementById('apiKey').value.trim();
+      localStorage.setItem('sdm_api',API_URL);
+      localStorage.setItem('sdm_key',API_KEY);
+      loadAll(true);
+    }
+
+    function loadAll(showToast){
+      document.getElementById('tbody').innerHTML='<tr><td class="loading">Memuat…</td></tr>';
+      return call('getConfig').then(function(cfg){
+        CONFIG=cfg; COLUMNS=cfg.columns||[]; return call('list');
+      }).then(function(rows){
+        ROWS=rows||[]; renderHead(); renderTable();
+        if(showToast) toast('Dimuat: '+ROWS.length+' karyawan');
+        initRealtime();
+      }).catch(function(e){
+        document.getElementById('tbody').innerHTML='<tr><td class="loading">Gagal: '+esc(e.message)+'</td></tr>';
+        toast('Gagal memuat: '+e.message,true);
+      });
+    }
+
+    function renderHead(){document.getElementById('thead').innerHTML=COLUMNS.map(function(c){return '<th>'+esc(c)+'</th>';}).join('')+'<th>Aksi</th>';}
+
+    function renderTable(){
+      var q=(document.getElementById('search').value||'').toLowerCase();
+      var tb=document.getElementById('tbody');
+      var f=ROWS.filter(function(r){return !q||COLUMNS.some(function(c){return String(r[c]==null?'':r[c]).toLowerCase().indexOf(q)>=0;});});
+      tb.innerHTML= f.length? f.map(function(r){
+        var cells=COLUMNS.map(function(c){return '<td>'+esc(r[c])+'</td>';}).join('');
+        var id=esc(r['ID']);
+        cells+='<td class="actions"><button class="icon-btn" style="background:#3b82f6" onclick="openEdit(\''+id+'\')">✏️</button><button class="icon-btn" style="background:#ef4444" onclick="removeRow(\''+id+'\')">🗑️</button></td>';
+        return '<tr>'+cells+'</tr>';
+      }).join('') : '<tr><td class="loading">Tidak ada data.</td></tr>';
+      document.getElementById('count').textContent='Menampilkan '+f.length+' dari '+ROWS.length+' karyawan';
+    }
+
+    function buildForm(rec){
+      document.getElementById('modalBody').innerHTML=COLUMNS.filter(function(c){return c!=='ID';}).map(function(c){
+        var v=esc(rec?rec[c]:''); var full=c.length>18?' full':'';
+        var l=c.toLowerCase(); var area=l.indexOf('alamat')>=0||l.indexOf('keterangan')>=0;
+        var inp=area?'<textarea class="input" rows="2" data-col="'+esc(c)+'">'+v+'</textarea>':'<input class="input" data-col="'+esc(c)+'" value="'+v+'">';
+        return '<div class="field'+full+'"><label>'+esc(c)+'</label>'+inp+'</div>';
+      }).join('');
+    }
+    function openCreate(){EDIT_ID=null;document.getElementById('modalTitle').textContent='Tambah Karyawan';buildForm(null);document.getElementById('modal').classList.add('show');}
+    function openEdit(id){var r=ROWS.filter(function(x){return String(x['ID'])===String(id);})[0];if(!r)return;EDIT_ID=id;document.getElementById('modalTitle').textContent='Edit — '+id;buildForm(r);document.getElementById('modal').classList.add('show');}
+    function closeModal(){document.getElementById('modal').classList.remove('show');}
+    function collectForm(){var rec={};document.querySelectorAll('#modalBody [data-col]').forEach(function(el){rec[el.getAttribute('data-col')]=el.value;});return rec;}
+
+    function saveRecord(){
+      var rec=collectForm();var btn=document.getElementById('saveBtn');btn.disabled=true;btn.textContent='Menyimpan…';
+      (EDIT_ID?call('update',{id:EDIT_ID,record:rec}):call('create',{record:rec}))
+        .then(function(){toast(EDIT_ID?'Diperbarui':'Ditambahkan');closeModal();return loadAll(false);})
+        .catch(function(e){toast('Gagal: '+e.message,true);})
+        .then(function(){btn.disabled=false;btn.textContent='💾 Simpan';});
+    }
+    function removeRow(id){if(!confirm('Hapus data ini?'))return;call('delete',{id:id}).then(function(){toast('Dihapus');return loadAll(false);}).catch(function(e){toast('Gagal: '+e.message,true);});}
+    function openAddColumn(){var n=prompt('Nama kolom baru:');if(!n)return;call('addColumn',{name:n.trim()}).then(function(cols){COLUMNS=cols;toast('Kolom ditambahkan');renderHead();renderTable();}).catch(function(e){toast('Gagal: '+e.message,true);});}
+
+    // realtime opsional
+    function setLive(on,t){document.getElementById('liveDot').className='dot'+(on?' live':'');document.getElementById('liveText').textContent=t;}
+    var fbInited=false;
+    function initRealtime(){
+      if(fbInited)return; var fc=CONFIG&&CONFIG.firebaseConfig;
+      if(!fc||!fc.databaseURL){setLive(false,'realtime nonaktif');return;}
+      fbInited=true;
+      load('https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js')
+       .then(function(){return load('https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js');})
+       .then(function(){
+          try{ firebase.initializeApp(fc); var first=true;
+            firebase.database().ref('meta/lastUpdate').on('value',function(){
+              setLive(true,'realtime aktif'); if(first){first=false;return;}
+              call('list').then(function(rows){ROWS=rows||[];renderTable();});
+            },function(){setLive(false,'realtime (akses ditolak)');});
+          }catch(e){setLive(false,'realtime error');}
+       }).catch(function(){setLive(false,'realtime gagal');});
+    }
+    function load(src){return new Promise(function(res,rej){var s=document.createElement('script');s.src=src;s.onload=res;s.onerror=rej;document.head.appendChild(s);});}
+
+    document.getElementById('modal').addEventListener('click',function(e){if(e.target.id==='modal')closeModal();});
+    if(API_URL) loadAll(false);
+  </script>
+</body>
+</html>
