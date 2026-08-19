@@ -4,8 +4,20 @@ Aplikasi **Google Apps Script Web App** yang menjadikan **Google Spreadsheet
 sebagai database karyawan** sekaligus menyajikan **dashboard interaktif**.
 
 - **Database:** sheet `data base SDM` di Google Spreadsheet (kolom A = `ID`).
-- **Dashboard:** kartu ringkasan (total, aktif/non-aktif, sudah kawin, ada SP,
-  total anak) + distribusi (per jenis karyawan, jabatan, pendidikan).
+- **Dashboard 3 tab:**
+  - **📈 Ringkasan** — kartu KPI (total, SPV/leader, crew, aktif/non-aktif,
+    ada SP) + distribusi (jenis karyawan, jabatan, pendidikan).
+  - **👥 SPV & Crew** — kelompokkan karyawan per SPV/tim/divisi (kolom bisa
+    dipilih); SPV terdeteksi otomatis dari `JABATAN` (SPV/Supervisor/Leader/
+    Koordinator/Kepala/Manager) dan ditandai 🌟.
+  - **🗂️ Data Karyawan** — tabel + pencarian + CRUD.
+- **Foto tampil** dari kolom `UPLOUD FOTO` (link Google Drive) sebagai avatar,
+  plus **profil interaktif**: klik baris/kartu untuk melihat detail lengkap +
+  tautan foto & KTP.
+
+> ⚠️ Agar foto muncul, file di Google Drive harus dibagikan **"Anyone with the
+> link"** (Siapa saja yang memiliki link). Jika tidak, avatar otomatis
+> menampilkan inisial nama.
 - **CRUD penuh:** tambah / ubah / hapus karyawan langsung dari halaman.
 - **Kolom dinamis:** tambah / ganti nama / hapus kolom.
 - **REST API JSON** (opsional) untuk integrasi luar.
