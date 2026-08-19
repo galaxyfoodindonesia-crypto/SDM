@@ -95,6 +95,57 @@ function getSheet_() {
   return sh;
 }
 
+// Dijalankan maksimal sekali per eksekusi (variabel modul di-reset tiap run).
+var _sheetReady = false;
+
+/**
+ * Rapikan sheet agar bisa dibaca sebagai database:
+ *  1. Jika kolom A bukan "ID" (mis. data ditempel mulai dari NAMA LENGKAP),
+ *     sisipkan kolom "ID" di paling kiri.
+ *  2. Isi otomatis ID untuk setiap baris yang sudah berdata tapi ID-nya kosong.
+ * Aman & idempoten — jika sheet sudah rapi, tidak ada yang diubah.
+ */
+function ensureSheetReady_() {
+  if (_sheetReady) return getSheet_();
+  var sh = getSheet_();
+  var lastRow = sh.getLastRow();
+  var lastCol = sh.getLastColumn();
+
+  if (lastRow < 1 || lastCol < 1) { initSheetHeaders_(sh); _sheetReady = true; return sh; }
+
+  // (1) Pastikan ada kolom ID di posisi A.
+  var a1 = String(sh.getRange(1, 1).getValue()).trim();
+  if (a1.toUpperCase() !== ID_HEADER) {
+    sh.insertColumnBefore(1);
+    sh.getRange(1, 1).setValue(ID_HEADER)
+      .setFontWeight('bold').setBackground('#065f46').setFontColor('#ffffff');
+  }
+
+  // (2) Backfill ID untuk baris berdata yang belum punya ID.
+  lastRow = sh.getLastRow();
+  lastCol = sh.getLastColumn();
+  if (lastRow >= 2) {
+    var rng = sh.getRange(2, 1, lastRow - 1, lastCol);
+    var vals = rng.getValues();
+    var changed = false;
+    for (var i = 0; i < vals.length; i++) {
+      var row = vals[i];
+      var hasData = false;
+      for (var c = 1; c < row.length; c++) {
+        if (String(row[c]).trim() !== '') { hasData = true; break; }
+      }
+      if (hasData && String(row[0]).trim() === '') {
+        row[0] = newId_() + '-' + (i + 2); // + nomor baris => pasti unik
+        changed = true;
+      }
+    }
+    if (changed) rng.setValues(vals);
+  }
+
+  _sheetReady = true;
+  return sh;
+}
+
 function initSheetHeaders_(sh) {
   var headers = [ID_HEADER].concat(DEFAULT_HEADERS);
   sh.getRange(1, 1, 1, headers.length).setValues([headers]);
@@ -173,6 +224,7 @@ function handleRequest_(action, params, body) {
       case 'renameColumn':return jsonOut_({ ok: true, data: renameColumn_(input.oldName, input.newName) });
       case 'deleteColumn':return jsonOut_({ ok: true, data: deleteColumn_(input.name) });
       case 'getConfig':   return jsonOut_({ ok: true, data: getConfig_() });
+      case 'repair':      return jsonOut_({ ok: true, data: (ensureSheetReady_(), { columns: getHeaders_(), count: listEmployees_().length }) });
       case 'syncAll':     return jsonOut_({ ok: true, data: syncAllToFirebase_() });
       default:
         return jsonOut_({ ok: false, error: 'Action tidak dikenal: ' + action });
@@ -217,6 +269,7 @@ function apiAddColumn(name)           { return wrap_(function () { return addCol
 function apiRenameColumn(o, n)        { return wrap_(function () { return renameColumn_(o, n); }); }
 function apiDeleteColumn(name)        { return wrap_(function () { return deleteColumn_(name); }); }
 function apiSyncFirebase()            { return wrap_(function () { return syncAllToFirebase_(); }); }
+function apiRepair()                  { return wrap_(function () { ensureSheetReady_(); return { columns: getHeaders_(), count: listEmployees_().length }; }); }
 
 /** Bungkus pemanggilan agar error selalu terkirim rapi ke frontend. */
 function wrap_(fn) {
@@ -230,7 +283,7 @@ function wrap_(fn) {
 // --------------------------- HELPER DATA SHEET -----------------------------
 
 function getHeaders_() {
-  var sh = getSheet_();
+  var sh = ensureSheetReady_();
   var lastCol = sh.getLastColumn();
   if (lastCol < 1) { initSheetHeaders_(sh); lastCol = sh.getLastColumn(); }
   return sh.getRange(1, 1, 1, lastCol).getValues()[0].map(function (h) {
@@ -252,7 +305,7 @@ function rowToObject_(headers, row) {
 }
 
 function listEmployees_() {
-  var sh = getSheet_();
+  var sh = ensureSheetReady_();
   var lastRow = sh.getLastRow();
   var lastCol = sh.getLastColumn();
   if (lastRow < 2) return [];
@@ -560,6 +613,9 @@ function setup() {
   if (sh.getLastRow() < 1 || String(sh.getRange(1, 1).getValue()).trim() === '') {
     initSheetHeaders_(sh);
   }
+
+  // Rapikan bila data sudah terlanjur ditempel tanpa kolom ID.
+  ensureSheetReady_();
 
   // Bila Firebase diaktifkan (FIREBASE_DB_URL terisi), sinkronkan sekali.
   if (firebaseEnabled_()) {

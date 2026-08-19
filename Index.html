@@ -115,6 +115,7 @@
       <input id="search" class="input grow" placeholder="🔎 Cari nama, NIK, jabatan, email…" oninput="renderTable()">
       <button class="btn primary" onclick="openCreate()">➕ Tambah Karyawan</button>
       <button class="btn blue" onclick="openAddColumn()">🧩 Kolom Baru</button>
+      <button class="btn ghost" onclick="repairData()" title="Buat kolom ID & baca data yang ditempel tanpa ID">🛠️ Perbaiki Data</button>
       <button class="btn ghost" onclick="loadAll(true)">🔄 Muat Ulang</button>
     </div>
     <div class="count" id="count"></div>
@@ -319,6 +320,14 @@
       api('apiAddColumn',[name.trim()]).then(function(cols){
         toast('Kolom "'+name+'" ditambahkan'); return loadAll(false);
       }).catch(function(e){ toast('Gagal menambah kolom: '+(e.message||e),true); });
+    }
+
+    // ---------- perbaiki data (buat ID untuk baris tanpa ID) ----------
+    function repairData(){
+      toast('Memperbaiki data…');
+      api('apiRepair').then(function(r){
+        toast('Selesai: '+((r&&r.count!=null)?r.count:'?')+' baris terbaca'); return loadAll(false);
+      }).catch(function(e){ toast('Gagal memperbaiki: '+(e.message||e),true); });
     }
 
     // close modal saat klik overlay
