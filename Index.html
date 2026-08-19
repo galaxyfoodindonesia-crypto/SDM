@@ -3,12 +3,12 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Database SDM - GFI</title>
+  <title>Dashboard SDM — GFI</title>
   <style>
     :root{
       --bg:#0f172a; --panel:#111827; --panel2:#1f2937; --line:#334155;
       --text:#e5e7eb; --muted:#94a3b8; --brand:#22c55e; --brand2:#16a34a;
-      --danger:#ef4444; --warn:#f59e0b; --blue:#3b82f6;
+      --danger:#ef4444; --warn:#f59e0b; --blue:#3b82f6; --purple:#a855f7;
     }
     *{box-sizing:border-box}
     body{margin:0;font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--text)}
@@ -18,7 +18,7 @@
     .badge{font-size:11px;padding:3px 8px;border-radius:20px;background:#052e16;color:#86efac;display:inline-flex;align-items:center;gap:6px}
     .dot{width:8px;height:8px;border-radius:50%;background:#64748b}
     .dot.live{background:var(--brand);box-shadow:0 0 8px var(--brand)}
-    .toolbar{display:flex;gap:8px;flex-wrap:wrap;padding:14px 20px;align-items:center}
+    .wrap{padding:18px 20px 48px;max-width:1200px;margin:0 auto}
     input,select,button,textarea{font:inherit}
     .input{background:var(--panel);border:1px solid var(--line);color:var(--text);border-radius:8px;padding:9px 12px;outline:none}
     .input:focus{border-color:var(--brand)}
@@ -26,21 +26,47 @@
     .btn.primary{background:var(--brand2)}
     .btn.primary:hover{background:var(--brand)}
     .btn.blue{background:var(--blue)}
-    .btn.warn{background:var(--warn);color:#111}
     .btn.danger{background:var(--danger)}
     .btn.ghost{background:transparent;border:1px solid var(--line)}
     .btn:hover{filter:brightness(1.08)}
+    .btn:disabled{opacity:.6;cursor:default}
     .grow{flex:1;min-width:180px}
-    .wrap{padding:0 20px 40px}
-    .tablewrap{overflow:auto;border:1px solid var(--line);border-radius:10px;background:var(--panel)}
+    /* KPI cards */
+    .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:18px}
+    .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;position:relative;overflow:hidden}
+    .card .num{font-size:28px;font-weight:800;line-height:1}
+    .card .lbl{font-size:12px;color:var(--muted);margin-top:6px;text-transform:uppercase;letter-spacing:.4px}
+    .card .accent{position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--brand)}
+    .card.a .accent{background:var(--brand)} .card.a .num{color:#86efac}
+    .card.b .accent{background:var(--blue)}  .card.b .num{color:#93c5fd}
+    .card.c .accent{background:var(--danger)}.card.c .num{color:#fca5a5}
+    .card.d .accent{background:var(--warn)}  .card.d .num{color:#fcd34d}
+    .card.e .accent{background:var(--purple)}.card.e .num{color:#d8b4fe}
+    /* Charts / distribusi */
+    .panels{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;margin-bottom:20px}
+    .panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+    .panel h3{margin:0 0 12px;font-size:13px;text-transform:uppercase;letter-spacing:.4px;color:#cbd5e1}
+    .bar-row{margin-bottom:10px}
+    .bar-top{display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:4px}
+    .bar-top .v{color:var(--muted)}
+    .bar{height:8px;background:#0b1220;border-radius:6px;overflow:hidden}
+    .bar > span{display:block;height:100%;background:linear-gradient(90deg,var(--brand2),var(--brand));border-radius:6px}
+    .empty{color:var(--muted);font-size:13px;padding:8px 0}
+    /* toolbar */
+    .toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+    .section-title{font-size:15px;font-weight:700;margin:6px 0 10px}
+    /* table */
+    .tablewrap{overflow:auto;border:1px solid var(--line);border-radius:10px;background:var(--panel);max-height:62vh}
     table{border-collapse:collapse;width:100%;font-size:13px;white-space:nowrap}
     th,td{padding:9px 12px;border-bottom:1px solid var(--line);text-align:left}
-    th{background:var(--panel2);position:sticky;top:0;font-size:12px;text-transform:uppercase;letter-spacing:.3px;color:#cbd5e1}
+    th{background:var(--panel2);position:sticky;top:0;font-size:12px;text-transform:uppercase;letter-spacing:.3px;color:#cbd5e1;z-index:2}
     tr:hover td{background:#0b1220}
     .actions{display:flex;gap:6px}
     .icon-btn{border:none;border-radius:6px;padding:5px 9px;cursor:pointer;color:#fff;font-size:12px}
-    .muted{color:var(--muted)}
+    .pill{font-size:11px;padding:2px 8px;border-radius:20px;font-weight:600}
+    .pill.on{background:#052e16;color:#86efac} .pill.off{background:#3f1d1d;color:#fca5a5}
     .count{font-size:12px;color:var(--muted);padding:8px 2px}
+    .loading{padding:40px;text-align:center;color:var(--muted)}
     /* Modal */
     .overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:flex-start;justify-content:center;padding:30px 16px;z-index:50;overflow:auto}
     .overlay.show{display:flex}
@@ -57,29 +83,40 @@
     .spinner{width:16px;height:16px;border:2px solid #ffffff55;border-top-color:#fff;border-radius:50%;display:inline-block;animation:spin .7s linear infinite;vertical-align:-3px}
     @keyframes spin{to{transform:rotate(360deg)}}
     @media(max-width:640px){.modal .body{grid-template-columns:1fr}}
-    .loading{padding:40px;text-align:center;color:var(--muted)}
   </style>
 </head>
 <body>
   <header>
     <div>
-      <h1>📋 Database SDM — GFI</h1>
-      <div class="sub">Terhubung ke Google Spreadsheet &amp; Firebase Realtime Database</div>
+      <h1>📊 Dashboard SDM — GFI</h1>
+      <div class="sub">Google Spreadsheet sebagai database karyawan</div>
     </div>
     <div>
-      <span class="badge"><span id="liveDot" class="dot"></span><span id="liveText">menghubungkan…</span></span>
+      <span class="badge"><span id="liveDot" class="dot"></span><span id="liveText">memuat…</span></span>
     </div>
   </header>
 
-  <div class="toolbar">
-    <input id="search" class="input grow" placeholder="🔎 Cari nama, NIK, jabatan, dll…" oninput="renderTable()">
-    <button class="btn primary" onclick="openCreate()">➕ Tambah Karyawan</button>
-    <button class="btn blue" onclick="openAddColumn()">🧩 Kolom Baru</button>
-    <button class="btn ghost" onclick="loadAll(true)">🔄 Muat Ulang</button>
-    <button class="btn ghost" onclick="syncAll()">☁️ Sync ke Firebase</button>
-  </div>
-
   <div class="wrap">
+    <!-- KARTU RINGKASAN -->
+    <div class="cards" id="cards">
+      <div class="card"><div class="accent"></div><div class="num">—</div><div class="lbl">Memuat…</div></div>
+    </div>
+
+    <!-- DISTRIBUSI -->
+    <div class="panels">
+      <div class="panel"><h3>👔 Per Jenis Karyawan</h3><div id="pJenis" class="empty">—</div></div>
+      <div class="panel"><h3>🏷️ Per Jabatan (Top)</h3><div id="pJabatan" class="empty">—</div></div>
+      <div class="panel"><h3>🎓 Per Pendidikan</h3><div id="pPendidikan" class="empty">—</div></div>
+    </div>
+
+    <!-- TABEL DATA -->
+    <div class="section-title">🗂️ Data Karyawan</div>
+    <div class="toolbar">
+      <input id="search" class="input grow" placeholder="🔎 Cari nama, NIK, jabatan, email…" oninput="renderTable()">
+      <button class="btn primary" onclick="openCreate()">➕ Tambah Karyawan</button>
+      <button class="btn blue" onclick="openAddColumn()">🧩 Kolom Baru</button>
+      <button class="btn ghost" onclick="loadAll(true)">🔄 Muat Ulang</button>
+    </div>
     <div class="count" id="count"></div>
     <div class="tablewrap">
       <table id="table">
@@ -104,16 +141,20 @@
   <div class="toast" id="toast"></div>
 
   <script>
-    var COLUMNS = [];      // daftar header termasuk 'ID'
-    var ROWS = [];         // data karyawan
-    var EDIT_ID = null;    // id yang sedang diedit (null = create)
-    var CONFIG = null;
+    var COLUMNS = [];   // header termasuk 'ID'
+    var ROWS = [];      // data karyawan
+    var STATS = null;   // statistik dashboard
+    var EDIT_ID = null; // id yang sedang diedit (null = create)
 
-    // ---------- helper google.script.run -> Promise ----------
+    // ---------- helper: google.script.run -> Promise ----------
+    // Semua fungsi server mengembalikan { ok, data } / { ok:false, error }.
     function api(fn, args){
       return new Promise(function(resolve,reject){
         google.script.run
-          .withSuccessHandler(resolve)
+          .withSuccessHandler(function(res){
+            if(res && res.ok===false){ reject(new Error(res.error||'Gagal')); }
+            else { resolve(res && res.hasOwnProperty('data') ? res.data : res); }
+          })
           .withFailureHandler(function(e){ reject(e); })
           [fn].apply(google.script.run, args||[]);
       });
@@ -122,34 +163,78 @@
     function toast(msg, isErr){
       var t=document.getElementById('toast');
       t.textContent=msg; t.className='toast show'+(isErr?' err':'');
-      setTimeout(function(){ t.className='toast'; }, 3500);
+      setTimeout(function(){ t.className='toast'; }, 3800);
+    }
+    function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+    function setLive(on,text){
+      document.getElementById('liveDot').className='dot'+(on?' live':'');
+      document.getElementById('liveText').textContent=text||'';
     }
 
-    function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
-
-    // ---------- load ----------
+    // ---------- load semuanya ----------
     function loadAll(showToast){
+      setLive(false,'memuat…');
       document.getElementById('tbody').innerHTML='<tr><td class="loading">Memuat data…</td></tr>';
-      return api('getConfig_').then(function(cfg){
-        CONFIG=cfg; COLUMNS=cfg.columns||[];
-        return api('listEmployees_');
-      }).then(function(rows){
-        ROWS=rows||[]; renderHead(); renderTable();
+      return api('apiBootstrap').then(function(b){
+        COLUMNS=b.columns||[]; ROWS=b.rows||[]; STATS=b.stats||null;
+        renderCards(); renderCharts(); renderHead(); renderTable();
+        setLive(true, (b.config && b.config.firebaseEnabled) ? 'sheet + firebase' : 'terhubung ke sheet');
         if(showToast) toast('Data dimuat: '+ROWS.length+' karyawan');
-        initRealtime();
       }).catch(function(e){
+        setLive(false,'gagal');
         document.getElementById('tbody').innerHTML='<tr><td class="loading">Gagal memuat: '+esc(e.message||e)+'</td></tr>';
         toast('Gagal memuat data: '+(e.message||e), true);
       });
     }
 
-    function renderHead(){
-      var tr=document.getElementById('thead');
-      var html=COLUMNS.map(function(c){return '<th>'+esc(c)+'</th>';}).join('');
-      html+='<th>Aksi</th>';
-      tr.innerHTML=html;
+    // ---------- kartu KPI ----------
+    function renderCards(){
+      var s=STATS||{};
+      var cards=[
+        {c:'',  n:s.total,     l:'Total Karyawan'},
+        {c:'a', n:s.aktif,     l:'Aktif'},
+        {c:'c', n:s.nonAktif,  l:'Non-Aktif'},
+        {c:'b', n:s.kawin,     l:'Sudah Kawin'},
+        {c:'d', n:s.denganSP,  l:'Ada SP'},
+        {c:'e', n:s.totalAnak, l:'Total Anak'}
+      ];
+      document.getElementById('cards').innerHTML=cards.map(function(x){
+        var v=(x.n==null?'—':x.n);
+        return '<div class="card '+x.c+'"><div class="accent"></div><div class="num">'+v+'</div><div class="lbl">'+esc(x.l)+'</div></div>';
+      }).join('');
     }
 
+    // ---------- distribusi (bar) ----------
+    function renderBars(elId, list){
+      var el=document.getElementById(elId);
+      if(!list || !list.length){ el.className='empty'; el.textContent='Belum ada data.'; return; }
+      el.className='';
+      var max=list.reduce(function(m,x){return Math.max(m,x.count);},0)||1;
+      el.innerHTML=list.map(function(x){
+        var pct=Math.round(x.count/max*100);
+        return '<div class="bar-row"><div class="bar-top"><span>'+esc(x.label)+'</span><span class="v">'+x.count+'</span></div>'+
+               '<div class="bar"><span style="width:'+pct+'%"></span></div></div>';
+      }).join('');
+    }
+    function renderCharts(){
+      var s=STATS||{};
+      renderBars('pJenis', s.byJenisKaryawan);
+      renderBars('pJabatan', s.byJabatan);
+      renderBars('pPendidikan', s.byPendidikan);
+    }
+
+    // ---------- tabel ----------
+    function renderHead(){
+      var tr=document.getElementById('thead');
+      tr.innerHTML=COLUMNS.map(function(c){return '<th>'+esc(c)+'</th>';}).join('')+'<th>Aksi</th>';
+    }
+    function cellRender(col, val){
+      if(col==='STATUS AKTIF'){
+        var on=/aktif/i.test(String(val))&&!/non|tidak/i.test(String(val));
+        return '<span class="pill '+(on?'on':'off')+'">'+esc(val||'-')+'</span>';
+      }
+      return esc(val);
+    }
     function renderTable(){
       var q=(document.getElementById('search').value||'').toLowerCase();
       var tb=document.getElementById('tbody');
@@ -160,11 +245,11 @@
       if(filtered.length===0){ tb.innerHTML='<tr><td class="loading">Tidak ada data.</td></tr>'; }
       else{
         tb.innerHTML=filtered.map(function(r){
-          var cells=COLUMNS.map(function(c){ return '<td>'+esc(r[c])+'</td>'; }).join('');
+          var cells=COLUMNS.map(function(c){ return '<td>'+cellRender(c, r[c])+'</td>'; }).join('');
           var id=esc(r['ID']);
           cells+='<td class="actions">'+
-            '<button class="icon-btn blue" onclick="openEdit(\''+id+'\')" style="background:#3b82f6">✏️</button>'+
-            '<button class="icon-btn danger" onclick="removeRow(\''+id+'\')" style="background:#ef4444">🗑️</button></td>';
+            '<button class="icon-btn blue" title="Edit" onclick="openEdit(\''+id+'\')" style="background:#3b82f6">✏️</button>'+
+            '<button class="icon-btn danger" title="Hapus" onclick="removeRow(\''+id+'\')" style="background:#ef4444">🗑️</button></td>';
           return '<tr>'+cells+'</tr>';
         }).join('');
       }
@@ -185,7 +270,6 @@
         return '<div class="field'+full+'"><label>'+esc(c)+'</label>'+inp+'</div>';
       }).join('');
     }
-
     function openCreate(){
       EDIT_ID=null;
       document.getElementById('modalTitle').textContent='Tambah Karyawan';
@@ -201,7 +285,6 @@
       document.getElementById('modal').classList.add('show');
     }
     function closeModal(){ document.getElementById('modal').classList.remove('show'); }
-
     function collectForm(){
       var rec={};
       document.querySelectorAll('#modalBody [data-col]').forEach(function(el){
@@ -209,24 +292,22 @@
       });
       return rec;
     }
-
     function saveRecord(){
       var rec=collectForm();
       var btn=document.getElementById('saveBtn');
       btn.disabled=true; btn.innerHTML='<span class="spinner"></span> Menyimpan…';
       var p= EDIT_ID
-        ? api('updateEmployee_',[EDIT_ID,rec])
-        : api('createEmployee_',[rec]);
+        ? api('apiUpdateEmployee',[EDIT_ID,rec])
+        : api('apiCreateEmployee',[rec]);
       p.then(function(){
         toast(EDIT_ID?'Data diperbarui':'Karyawan ditambahkan');
         closeModal(); return loadAll(false);
       }).catch(function(e){ toast('Gagal menyimpan: '+(e.message||e),true); })
       .then(function(){ btn.disabled=false; btn.innerHTML='💾 Simpan'; });
     }
-
     function removeRow(id){
       if(!confirm('Hapus data karyawan ini?\nID: '+id)) return;
-      api('deleteEmployee_',[id]).then(function(){
+      api('apiDeleteEmployee',[id]).then(function(){
         toast('Data dihapus'); return loadAll(false);
       }).catch(function(e){ toast('Gagal menghapus: '+(e.message||e),true); });
     }
@@ -235,55 +316,12 @@
     function openAddColumn(){
       var name=prompt('Nama kolom baru:');
       if(!name) return;
-      api('addColumn_',[name.trim()]).then(function(cols){
-        COLUMNS=cols; toast('Kolom "'+name+'" ditambahkan');
-        renderHead(); renderTable();
+      api('apiAddColumn',[name.trim()]).then(function(cols){
+        toast('Kolom "'+name+'" ditambahkan'); return loadAll(false);
       }).catch(function(e){ toast('Gagal menambah kolom: '+(e.message||e),true); });
     }
 
-    // ---------- sync ----------
-    function syncAll(){
-      toast('Menyinkronkan ke Firebase…');
-      api('syncAllToFirebase_').then(function(r){
-        toast('Sync selesai: '+ (r&&r.count!=null?r.count:'?') +' data');
-      }).catch(function(e){ toast('Gagal sync: '+(e.message||e),true); });
-    }
-
-    // ---------- realtime (opsional via Firebase JS SDK) ----------
-    function setLive(on,text){
-      document.getElementById('liveDot').className='dot'+(on?' live':'');
-      document.getElementById('liveText').textContent=text||(on?'realtime aktif':'offline');
-    }
-    var fbInited=false;
-    function initRealtime(){
-      if(fbInited) return;
-      var fc=CONFIG && CONFIG.firebaseConfig;
-      if(!fc || !fc.databaseURL){ setLive(false,'realtime nonaktif'); return; }
-      fbInited=true;
-      loadScript('https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js')
-       .then(function(){return loadScript('https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js');})
-       .then(function(){
-          try{
-            firebase.initializeApp(fc);
-            var db=firebase.database();
-            var first=true;
-            db.ref('meta/lastUpdate').on('value',function(snap){
-              setLive(true,'realtime aktif');
-              if(first){ first=false; return; }
-              // ada perubahan dari klien lain -> muat ulang senyap
-              api('listEmployees_').then(function(rows){ ROWS=rows||[]; renderTable(); });
-            }, function(){ setLive(false,'realtime (akses ditolak)'); });
-          }catch(e){ setLive(false,'realtime error'); }
-       }).catch(function(){ setLive(false,'realtime gagal dimuat'); });
-    }
-    function loadScript(src){
-      return new Promise(function(res,rej){
-        var s=document.createElement('script'); s.src=src; s.onload=res; s.onerror=rej;
-        document.head.appendChild(s);
-      });
-    }
-
-    // close modal on overlay click
+    // close modal saat klik overlay
     document.getElementById('modal').addEventListener('click',function(e){
       if(e.target.id==='modal') closeModal();
     });

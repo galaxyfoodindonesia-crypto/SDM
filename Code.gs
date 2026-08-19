@@ -1,27 +1,32 @@
 /**
  * ============================================================================
- *  SERVER API - DATABASE SDM / KARYAWAN GFI
+ *  DASHBOARD & DATABASE KARYAWAN — GFI (Galaxy Food Indonesia)
  * ============================================================================
- *  Google Apps Script Web App yang berfungsi sebagai REST API untuk:
- *    - Mengelola data karyawan di Google Spreadsheet (sheet "data base SDM")
- *    - Sinkronisasi otomatis ke Firebase Realtime Database (realtime)
- *    - CRUD (Create, Read, Update, Delete)
- *    - Menambah kolom baru secara dinamis
- *    - Konfigurasi & pengaturan disimpan di Realtime Database
+ *  Google Apps Script Web App yang menjadikan Google Spreadsheet sebagai
+ *  DATABASE karyawan (SDM) sekaligus menyajikan DASHBOARD interaktif.
  *
- *  Cara deploy:
- *    1. Buat Spreadsheet baru, catat ID-nya (dari URL).
- *    2. Extensions > Apps Script, tempel semua file (.gs & .html).
- *    3. Jalankan fungsi `setup()` sekali untuk inisialisasi Script Properties,
- *       sheet, dan konfigurasi di Firebase.
- *    4. Deploy > New deployment > Web app > Execute as: Me,
- *       Who has access: Anyone. Salin URL Web App.
+ *  Fitur:
+ *    - Google Spreadsheet (sheet "data base SDM") = database utama.
+ *    - Dashboard ringkasan (total, aktif/non-aktif, jenis karyawan, SP, dll).
+ *    - CRUD penuh (Tambah / Ubah / Hapus karyawan).
+ *    - Kolom dinamis (tambah / ganti nama / hapus kolom).
+ *    - Pencarian & tabel data.
+ *    - REST API JSON (doGet/doPost) untuk integrasi luar (opsional).
+ *    - Sinkronisasi Firebase Realtime Database (OPSIONAL, aktif otomatis
+ *      hanya bila FIREBASE_DB_URL diisi — inti aplikasi tetap jalan tanpanya).
  *
- *  Konfigurasi yang WAJIB diisi di Script Properties (lihat fungsi setup):
- *    - SPREADSHEET_ID     : ID Google Spreadsheet
- *    - FIREBASE_DB_URL    : URL Realtime Database (contoh di bawah)
- *    - FIREBASE_SECRET    : (opsional) Database secret / token auth RTDB
- *    - API_KEY            : (opsional) kunci sederhana untuk proteksi API
+ *  Cara pakai singkat:
+ *    1. Buka Spreadsheet Anda > Extensions > Apps Script.
+ *    2. Tempel Code.gs & Index.html (nama HTML persis: "Index").
+ *    3. Jalankan fungsi `setup()` SEKALI untuk membuat sheet + header.
+ *    4. Deploy > New deployment > Web app (Execute as: Me,
+ *       Who has access: Anyone). Buka URL /exec untuk melihat dashboard.
+ *
+ *  CATATAN PENTING (bug umum Apps Script):
+ *    Fungsi yang diakhiri garis bawah "_" bersifat PRIVAT dan TIDAK bisa
+ *    dipanggil dari frontend lewat google.script.run. Karena itu semua
+ *    fungsi yang dipanggil dari Index.html memakai awalan `api...` TANPA
+ *    garis bawah di akhir.
  * ============================================================================
  */
 
@@ -29,9 +34,12 @@
 
 var SHEET_NAME = 'data base SDM';
 
+// Nama kolom teknis untuk ID unik (kolom A).
+var ID_HEADER = 'ID';
+
 /**
- * Header default kolom B1:V1 (kolom A dipakai untuk ID unik karyawan).
- * Urutan ini menentukan urutan kolom saat sheet pertama kali dibuat.
+ * Header default kolom B1..V1 (kolom A dipakai untuk ID unik karyawan).
+ * Urutan menentukan urutan kolom saat sheet pertama kali dibuat.
  */
 var DEFAULT_HEADERS = [
   'NAMA LENGKAP',
@@ -57,9 +65,6 @@ var DEFAULT_HEADERS = [
   'KETERANGAN SP'
 ];
 
-// Nama kolom teknis untuk ID (kolom A).
-var ID_HEADER = 'ID';
-
 // ---------------------------- HELPER PROPERTIES ----------------------------
 
 function props_() {
@@ -77,7 +82,7 @@ function getSpreadsheet_() {
   // fallback: spreadsheet yang terikat langsung dengan project (jika ada)
   var active = SpreadsheetApp.getActiveSpreadsheet();
   if (active) return active;
-  throw new Error('SPREADSHEET_ID belum diset di Script Properties.');
+  throw new Error('SPREADSHEET_ID belum diset. Jalankan fungsi setup() dulu.');
 }
 
 function getSheet_() {
@@ -93,16 +98,18 @@ function getSheet_() {
 function initSheetHeaders_(sh) {
   var headers = [ID_HEADER].concat(DEFAULT_HEADERS);
   sh.getRange(1, 1, 1, headers.length).setValues([headers]);
-  sh.getRange(1, 1, 1, headers.length).setFontWeight('bold').setBackground('#1f2937').setFontColor('#ffffff');
+  sh.getRange(1, 1, 1, headers.length)
+    .setFontWeight('bold').setBackground('#065f46').setFontColor('#ffffff');
   sh.setFrozenRows(1);
+  sh.setFrozenColumns(2);
 }
 
 // ------------------------------- ROUTER ------------------------------------
 
 /**
  * Entry point GET.
- * - Tanpa parameter `action` -> menyajikan halaman frontend (HtmlService).
- * - Dengan `action` -> berperilaku sebagai JSON API (read-only friendly).
+ * - Tanpa parameter `action` -> menyajikan dashboard (Index.html).
+ * - Dengan `action` -> berperilaku sebagai REST API JSON.
  */
 function doGet(e) {
   e = e || {};
@@ -110,7 +117,7 @@ function doGet(e) {
 
   if (!params.action) {
     return HtmlService.createHtmlOutputFromFile('Index')
-      .setTitle('Database SDM - GFI')
+      .setTitle('Dashboard SDM — GFI')
       .addMetaTag('viewport', 'width=device-width, initial-scale=1')
       .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
   }
@@ -138,7 +145,7 @@ function doPost(e) {
 }
 
 /**
- * Router utama. Menggabungkan parameter GET dan body POST.
+ * Router REST API. Menggabungkan parameter GET dan body POST.
  */
 function handleRequest_(action, params, body) {
   var input = {};
@@ -149,14 +156,13 @@ function handleRequest_(action, params, body) {
   try {
     // Proteksi API sederhana (opsional).
     var requiredKey = getProp_('API_KEY');
-    if (requiredKey) {
-      if (input.apiKey !== requiredKey) {
-        return jsonOut_({ ok: false, error: 'Unauthorized: API key salah/absen.' });
-      }
+    if (requiredKey && input.apiKey !== requiredKey) {
+      return jsonOut_({ ok: false, error: 'Unauthorized: API key salah/absen.' });
     }
 
     switch (action) {
       case 'ping':        return jsonOut_({ ok: true, message: 'pong', time: new Date().toISOString() });
+      case 'dashboard':   return jsonOut_({ ok: true, data: computeDashboard_() });
       case 'list':        return jsonOut_({ ok: true, data: listEmployees_() });
       case 'get':         return jsonOut_({ ok: true, data: getEmployee_(input.id) });
       case 'create':      return jsonOut_({ ok: true, data: createEmployee_(input.record || input.data || {}) });
@@ -167,7 +173,6 @@ function handleRequest_(action, params, body) {
       case 'renameColumn':return jsonOut_({ ok: true, data: renameColumn_(input.oldName, input.newName) });
       case 'deleteColumn':return jsonOut_({ ok: true, data: deleteColumn_(input.name) });
       case 'getConfig':   return jsonOut_({ ok: true, data: getConfig_() });
-      case 'setConfig':   return jsonOut_({ ok: true, data: setConfig_(input.config || {}) });
       case 'syncAll':     return jsonOut_({ ok: true, data: syncAllToFirebase_() });
       default:
         return jsonOut_({ ok: false, error: 'Action tidak dikenal: ' + action });
@@ -183,6 +188,45 @@ function jsonOut_(obj) {
     .setMimeType(ContentService.MimeType.JSON);
 }
 
+// ============================================================================
+//  API PUBLIK UNTUK FRONTEND (google.script.run)
+//  Wajib TANPA garis bawah di akhir agar bisa dipanggil dari Index.html.
+//  Selalu mengembalikan objek { ok, data } / { ok:false, error }.
+// ============================================================================
+
+/** Muat semua yang dibutuhkan dashboard sekaligus (kolom + data + statistik). */
+function apiBootstrap() {
+  return wrap_(function () {
+    return {
+      columns: getHeaders_(),
+      rows: listEmployees_(),
+      stats: computeDashboard_(),
+      config: getConfig_()
+    };
+  });
+}
+
+function apiDashboard()               { return wrap_(function () { return computeDashboard_(); }); }
+function apiListEmployees()           { return wrap_(function () { return listEmployees_(); }); }
+function apiGetColumns()              { return wrap_(function () { return getHeaders_(); }); }
+function apiGetEmployee(id)           { return wrap_(function () { return getEmployee_(id); }); }
+function apiCreateEmployee(record)    { return wrap_(function () { return createEmployee_(record || {}); }); }
+function apiUpdateEmployee(id, rec)   { return wrap_(function () { return updateEmployee_(id, rec || {}); }); }
+function apiDeleteEmployee(id)        { return wrap_(function () { return deleteEmployee_(id); }); }
+function apiAddColumn(name)           { return wrap_(function () { return addColumn_(name); }); }
+function apiRenameColumn(o, n)        { return wrap_(function () { return renameColumn_(o, n); }); }
+function apiDeleteColumn(name)        { return wrap_(function () { return deleteColumn_(name); }); }
+function apiSyncFirebase()            { return wrap_(function () { return syncAllToFirebase_(); }); }
+
+/** Bungkus pemanggilan agar error selalu terkirim rapi ke frontend. */
+function wrap_(fn) {
+  try {
+    return { ok: true, data: fn() };
+  } catch (err) {
+    return { ok: false, error: err && err.message ? err.message : String(err) };
+  }
+}
+
 // --------------------------- HELPER DATA SHEET -----------------------------
 
 function getHeaders_() {
@@ -194,9 +238,7 @@ function getHeaders_() {
   });
 }
 
-/**
- * Konversi baris array menjadi object {header: value}.
- */
+/** Konversi baris array menjadi object {header: value}. */
 function rowToObject_(headers, row) {
   var obj = {};
   for (var i = 0; i < headers.length; i++) {
@@ -264,7 +306,7 @@ function createEmployee_(record) {
   sh.appendRow(row);
 
   var saved = getEmployee_(id);
-  firebaseSet_('employees/' + firebaseKey_(id), saved);
+  firebaseSafeSet_('employees/' + firebaseKeySafe_(id), saved);
   touchMeta_();
   return saved;
 }
@@ -286,7 +328,7 @@ function updateEmployee_(id, record) {
   sh.getRange(rowNum, 1, 1, lastCol).setValues([newRow]);
 
   var saved = getEmployee_(id);
-  firebaseSet_('employees/' + firebaseKey_(id), saved);
+  firebaseSafeSet_('employees/' + firebaseKeySafe_(id), saved);
   touchMeta_();
   return saved;
 }
@@ -297,7 +339,7 @@ function deleteEmployee_(id) {
   var rowNum = findRowById_(id);
   if (rowNum < 0) throw new Error('Data dengan id ' + id + ' tidak ditemukan.');
   sh.deleteRow(rowNum);
-  firebaseDelete_('employees/' + firebaseKey_(id));
+  firebaseSafeDelete_('employees/' + firebaseKeySafe_(id));
   touchMeta_();
   return { id: id, deleted: true };
 }
@@ -313,7 +355,7 @@ function addColumn_(name) {
   var sh = getSheet_();
   var newColIndex = sh.getLastColumn() + 1;
   sh.getRange(1, newColIndex).setValue(name)
-    .setFontWeight('bold').setBackground('#1f2937').setFontColor('#ffffff');
+    .setFontWeight('bold').setBackground('#065f46').setFontColor('#ffffff');
 
   syncColumnsToFirebase_();
   return getHeaders_();
@@ -330,7 +372,6 @@ function renameColumn_(oldName, newName) {
   var sh = getSheet_();
   sh.getRange(1, idx + 1).setValue(newName);
   syncColumnsToFirebase_();
-  syncAllToFirebase_();
   return getHeaders_();
 }
 
@@ -344,107 +385,207 @@ function deleteColumn_(name) {
   var sh = getSheet_();
   sh.deleteColumn(idx + 1);
   syncColumnsToFirebase_();
-  syncAllToFirebase_();
   return getHeaders_();
+}
+
+// =========================== STATISTIK DASHBOARD ===========================
+
+/** Samakan teks: uppercase + rapikan spasi, agar cocok walau beda kapital. */
+function norm_(v) {
+  return String(v == null ? '' : v).trim().toUpperCase().replace(/\s+/g, ' ');
+}
+
+/** Tebak apakah nilai "STATUS AKTIF" berarti aktif. */
+function isAktif_(val) {
+  var s = norm_(val);
+  if (!s) return false;
+  if (s.indexOf('NON') >= 0 || s.indexOf('TIDAK') >= 0 || s.indexOf('RESIGN') >= 0 ||
+      s.indexOf('KELUAR') >= 0 || s.indexOf('BERHENTI') >= 0) return false;
+  return s.indexOf('AKTIF') >= 0;
+}
+
+/** Hitung distribusi sebuah kolom -> [{label, count}] terurut menurun. */
+function distribution_(rows, colName) {
+  var map = {};
+  for (var i = 0; i < rows.length; i++) {
+    var raw = rows[i][colName];
+    var label = (raw == null || String(raw).trim() === '') ? '(Kosong)' : String(raw).trim();
+    map[label] = (map[label] || 0) + 1;
+  }
+  var arr = [];
+  for (var k in map) { if (map.hasOwnProperty(k)) arr.push({ label: k, count: map[k] }); }
+  arr.sort(function (a, b) { return b.count - a.count; });
+  return arr;
+}
+
+/**
+ * Ringkasan untuk kartu & grafik dashboard.
+ */
+function computeDashboard_() {
+  var headers = getHeaders_();
+  var rows = listEmployees_();
+  var total = rows.length;
+
+  var aktif = 0, nonAktif = 0;
+  var kawin = 0;
+  var denganSP = 0;
+  var totalAnak = 0;
+  for (var i = 0; i < rows.length; i++) {
+    var r = rows[i];
+    if (isAktif_(r['STATUS AKTIF'])) aktif++; else nonAktif++;
+    if (norm_(r['STATUS']).indexOf('KAWIN') >= 0) kawin++;
+    var sp = String(r['STATUS SP'] == null ? '' : r['STATUS SP']).trim();
+    if (sp) denganSP++;
+    var anak = parseInt(r['JUMLAH ANAK'], 10);
+    if (!isNaN(anak)) totalAnak += anak;
+  }
+
+  var has = function (name) { return headers.indexOf(name) >= 0; };
+
+  return {
+    total: total,
+    aktif: aktif,
+    nonAktif: nonAktif,
+    kawin: kawin,
+    belumKawin: total - kawin,
+    denganSP: denganSP,
+    totalAnak: totalAnak,
+    columnsCount: headers.length,
+    byJenisKaryawan: has('JENIS KARYAWAN') ? distribution_(rows, 'JENIS KARYAWAN') : [],
+    byJabatan:       has('JABATAN')        ? distribution_(rows, 'JABATAN').slice(0, 8) : [],
+    byPendidikan:    has('PENDIDIKAN TERAKHIR') ? distribution_(rows, 'PENDIDIKAN TERAKHIR') : [],
+    byStatusAktif:   has('STATUS AKTIF')   ? distribution_(rows, 'STATUS AKTIF') : [],
+    generatedAt: new Date().toISOString()
+  };
 }
 
 // ------------------------------ KONFIGURASI --------------------------------
 
 /**
- * Konfigurasi disimpan di Realtime Database pada path /config.
- * Termasuk firebaseConfig (untuk frontend), daftar kolom, dan metadata.
+ * Konfigurasi frontend. Bila Firebase aktif, gabungkan config dari RTDB.
+ * Selalu menyertakan daftar kolom & nama sheet (dari Spreadsheet).
  */
 function getConfig_() {
-  var cfg = firebaseGet_('config');
-  if (!cfg) cfg = {};
+  var cfg = {};
+  if (firebaseEnabled_()) {
+    try {
+      var remote = firebaseGet_('config');
+      if (remote && typeof remote === 'object') cfg = remote;
+    } catch (e) { /* abaikan; dashboard tetap jalan tanpa Firebase */ }
+  }
   cfg.columns = getHeaders_();
   cfg.sheetName = SHEET_NAME;
+  cfg.firebaseEnabled = firebaseEnabled_();
+  cfg.appName = cfg.appName || 'Dashboard SDM — GFI';
   return cfg;
 }
 
-function setConfig_(config) {
-  var current = firebaseGet_('config') || {};
-  for (var k in config) { if (config.hasOwnProperty(k)) current[k] = config[k]; }
-  current.updatedAt = new Date().toISOString();
-  firebaseSet_('config', current);
-  return getConfig_();
+// --------------------- INTEGRASI FIREBASE (OPSIONAL) -----------------------
+// Semua pemanggilan Firebase di sini "aman": bila FIREBASE_DB_URL kosong atau
+// terjadi error jaringan, inti aplikasi (Spreadsheet) tetap berjalan normal.
+
+/** Firebase dianggap aktif hanya bila FIREBASE_DB_URL diisi. */
+function firebaseEnabled_() {
+  return !!getProp_('FIREBASE_DB_URL');
 }
 
-function syncColumnsToFirebase_() {
-  var current = firebaseGet_('config') || {};
-  current.columns = getHeaders_();
-  current.sheetName = SHEET_NAME;
-  current.updatedAt = new Date().toISOString();
-  firebaseSet_('config', current);
+/** Wrapper aman untuk firebaseKey_ (Firebase.gs mungkin tidak dipakai). */
+function firebaseKeySafe_(raw) {
+  if (typeof firebaseKey_ === 'function') return firebaseKey_(raw);
+  return String(raw).replace(/[.$#\[\]\/]/g, '_');
+}
+
+function firebaseSafeSet_(path, value) {
+  if (!firebaseEnabled_() || typeof firebaseSet_ !== 'function') return;
+  try { firebaseSet_(path, value); } catch (e) { Logger.log('Firebase set gagal: ' + e); }
+}
+
+function firebaseSafeDelete_(path) {
+  if (!firebaseEnabled_() || typeof firebaseDelete_ !== 'function') return;
+  try { firebaseDelete_(path); } catch (e) { Logger.log('Firebase delete gagal: ' + e); }
 }
 
 function touchMeta_() {
-  firebaseSet_('meta/lastUpdate', new Date().toISOString());
+  if (!firebaseEnabled_() || typeof firebaseSet_ !== 'function') return;
+  try { firebaseSet_('meta/lastUpdate', new Date().toISOString()); } catch (e) { /* diabaikan */ }
 }
 
-// --------------------------- SINKRONISASI PENUH ----------------------------
+function syncColumnsToFirebase_() {
+  if (!firebaseEnabled_() || typeof firebaseGet_ !== 'function') return;
+  try {
+    var current = firebaseGet_('config') || {};
+    current.columns = getHeaders_();
+    current.sheetName = SHEET_NAME;
+    current.updatedAt = new Date().toISOString();
+    firebaseSet_('config', current);
+  } catch (e) { Logger.log('Sync kolom gagal: ' + e); }
+}
 
+/** Sinkronkan seluruh sheet -> Firebase (hanya bila Firebase aktif). */
 function syncAllToFirebase_() {
+  if (!firebaseEnabled_()) {
+    return { synced: false, reason: 'Firebase nonaktif (FIREBASE_DB_URL kosong).' };
+  }
   var employees = listEmployees_();
   var map = {};
   for (var i = 0; i < employees.length; i++) {
     var id = employees[i][ID_HEADER];
     if (!id) continue;
-    map[firebaseKey_(id)] = employees[i];
+    map[firebaseKeySafe_(id)] = employees[i];
   }
   firebaseSet_('employees', map);
   syncColumnsToFirebase_();
   touchMeta_();
-  return { count: employees.length };
+  return { synced: true, count: employees.length };
 }
 
 // =========================== FUNGSI SETUP AWAL =============================
 
 /**
- * Jalankan SEKALI dari editor Apps Script untuk inisialisasi.
- * Sesuaikan nilai di bawah sebelum menjalankan.
+ * Jalankan SEKALI dari editor Apps Script untuk inisialisasi database.
+ * Aman dijalankan berulang (idempoten). Firebase TIDAK wajib.
  */
 function setup() {
   var p = props_();
 
-  // Ambil ID spreadsheet: dari property, atau dari spreadsheet aktif bila terikat.
   var spreadsheetId = p.getProperty('SPREADSHEET_ID') || '';
   if (!spreadsheetId) {
     var active = SpreadsheetApp.getActiveSpreadsheet();
     if (active) spreadsheetId = active.getId();
   }
+  if (spreadsheetId) p.setProperty('SPREADSHEET_ID', spreadsheetId);
 
-  // >>> GANTI nilai berikut sesuai project Anda <<<
-  var config = {
-    SPREADSHEET_ID:  spreadsheetId,
-    FIREBASE_DB_URL: p.getProperty('FIREBASE_DB_URL') || 'https://hrnit-d1140-default-rtdb.firebaseio.com',
-    FIREBASE_SECRET: p.getProperty('FIREBASE_SECRET') || '',   // isi bila RTDB butuh auth
-    API_KEY:         p.getProperty('API_KEY') || ''            // isi bila ingin proteksi
-  };
-
-  p.setProperties(config, false);
-
-  // Inisialisasi sheet + header.
+  // Inisialisasi sheet + header (database).
   var sh = getSheet_();
   if (sh.getLastRow() < 1 || String(sh.getRange(1, 1).getValue()).trim() === '') {
     initSheetHeaders_(sh);
   }
 
-  // Simpan firebaseConfig (web) & kolom ke Realtime Database /config.
-  setConfig_({
-    firebaseConfig: {
-      apiKey: 'AIzaSyDuhK2zpIbH41DXLHpxT2uUKSGVT3TxUbg',
-      authDomain: 'hrnit-d1140.firebaseapp.com',
-      projectId: 'hrnit-d1140',
-      storageBucket: 'hrnit-d1140.firebasestorage.app',
-      messagingSenderId: '102705744721',
-      appId: '1:102705744721:web:49e5ec0bd87eb5df582170',
-      measurementId: 'G-EET5PL4GQW',
-      databaseURL: config.FIREBASE_DB_URL
-    },
-    appName: 'Database SDM - GFI'
-  });
+  // Bila Firebase diaktifkan (FIREBASE_DB_URL terisi), sinkronkan sekali.
+  if (firebaseEnabled_()) {
+    try { syncAllToFirebase_(); } catch (e) { Logger.log('Sync awal gagal: ' + e); }
+  }
 
-  syncAllToFirebase_();
-  Logger.log('Setup selesai. Script Properties: ' + JSON.stringify(config));
+  Logger.log('Setup selesai. SPREADSHEET_ID=' + spreadsheetId +
+    ' | Firebase=' + (firebaseEnabled_() ? 'AKTIF' : 'nonaktif'));
+}
+
+/**
+ * (Opsional) Isi contoh 1 baris data agar dashboard tidak kosong saat demo.
+ */
+function seedContoh() {
+  createEmployee_({
+    'NAMA LENGKAP': 'KHOTIB',
+    'NIK KTP': '3523154502960001',
+    'NO.NPWP': '944381133649000',
+    'TEMPAT, TANGGAL LAHIR': '28/02/1996',
+    'STATUS': 'KAWIN',
+    'JUMLAH ANAK': '1',
+    'JOINT KERJA DI GFI': '14/04/2025',
+    'JABATAN': 'ADMIN HR',
+    'E-MAIL': 'prayogo0620@gmail.com',
+    'PENDIDIKAN TERAKHIR': 'S1',
+    'REKENING BCA': '8241256618',
+    'STATUS AKTIF': 'AKTIF'
+  });
 }
