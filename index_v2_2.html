@@ -1,0 +1,3727 @@
+<!DOCTYPE html><html lang="id"><head><meta name="x-poe-datastore-behavior" content="local_only"><meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://code.jquery.com https://unpkg.com https://d3js.org https://threejs.org https://cdn.plot.ly https://stackpath.bootstrapcdn.com https://maps.googleapis.com https://cdn.tailwindcss.com https://ajax.googleapis.com https://kit.fontawesome.com https://cdn.datatables.net https://maxcdn.bootstrapcdn.com https://code.highcharts.com https://tako-static-assets-production.s3.amazonaws.com https://www.youtube.com https://fonts.googleapis.com https://fonts.gstatic.com https://pfst.cf2.poecdn.net https://puc.poecdn.net https://i.imgur.com https://wikimedia.org https://*.icons8.com https://*.giphy.com https://picsum.photos https://images.unsplash.com; frame-src 'self' https://www.youtube.com https://trytako.com; child-src 'self'; manifest-src 'self'; worker-src 'self'; upgrade-insecure-requests; block-all-mixed-content;"><meta name="x-poe-datastore-behavior" content="local_only"><meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://code.jquery.com https://unpkg.com https://d3js.org https://threejs.org https://cdn.plot.ly https://stackpath.bootstrapcdn.com https://maps.googleapis.com https://cdn.tailwindcss.com https://ajax.googleapis.com https://kit.fontawesome.com https://cdn.datatables.net https://maxcdn.bootstrapcdn.com https://code.highcharts.com https://tako-static-assets-production.s3.amazonaws.com https://www.youtube.com https://fonts.googleapis.com https://fonts.gstatic.com https://pfst.cf2.poecdn.net https://puc.poecdn.net https://i.imgur.com https://wikimedia.org https://*.icons8.com https://*.giphy.com https://picsum.photos https://images.unsplash.com; frame-src 'self' https://www.youtube.com https://trytako.com; child-src 'self'; manifest-src 'self'; worker-src 'self'; upgrade-insecure-requests; block-all-mixed-content;">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payroll System - PT. Galaxy Food Indonesia</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: #f0f2f5;
+            min-height: 100vh;
+        }
+
+        .container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 260px;
+            background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%);
+            color: white;
+            padding: 20px 0;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        .logo {
+            padding: 0 20px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 20px;
+        }
+
+        .logo h2 {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .logo p {
+            font-size: 12px;
+            opacity: 0.7;
+        }
+
+        .menu-item {
+            padding: 12px 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.3s;
+            border-left: 3px solid transparent;
+        }
+
+        .menu-item:hover, .menu-item.active {
+            background: rgba(255,255,255,0.1);
+            border-left-color: #4fc3f7;
+        }
+
+        .menu-item i {
+            width: 20px;
+            text-align: center;
+        }
+
+        .submenu {
+            margin-left: 32px;
+            font-size: 14px;
+        }
+
+        .submenu .menu-item {
+            padding: 8px 20px;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 260px;
+            flex: 1;
+            padding: 20px;
+        }
+
+        .header {
+            background: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .period-selector {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .period-selector select {
+            padding: 8px 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: #1e88e5;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #1565c0;
+        }
+
+        .btn-success {
+            background: #43a047;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #2e7d32;
+        }
+
+        .btn-danger {
+            background: #e53935;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c62828;
+        }
+
+        .btn-secondary {
+            background: #757575;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #616161;
+        }
+
+        .btn-warning {
+            background: #ff9800;
+            color: white;
+        }
+
+        .btn-warning:hover {
+            background: #f57c00;
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        /* Cards */
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .card-header h3 {
+            font-size: 18px;
+            color: #333;
+        }
+
+        .card-header p {
+            font-size: 13px;
+            color: #666;
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .stat-card h4 {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .stat-card .value {
+            font-size: 24px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .stat-card.blue { border-left: 4px solid #1e88e5; }
+        .stat-card.green { border-left: 4px solid #43a047; }
+        .stat-card.orange { border-left: 4px solid #ff9800; }
+        .stat-card.purple { border-left: 4px solid #8e24aa; }
+
+        /* Quick Actions */
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+
+        .quick-action-btn {
+            padding: 20px;
+            background: #f8f9fa;
+            border: 2px dashed #ddd;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .quick-action-btn:hover {
+            border-color: #1e88e5;
+            background: #e3f2fd;
+        }
+
+        .quick-action-btn i {
+            font-size: 24px;
+            color: #1e88e5;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        /* Table */
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        table th, table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #333;
+        }
+
+        table tr:hover {
+            background: #f8f9fa;
+        }
+
+        /* Form */
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #1e88e5;
+        }
+
+        .lock-checkbox {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: #1e88e5;
+        }
+
+        .lock-checkbox:checked + label {
+            color: #1e88e5;
+        }
+
+        /* Searchable Select */
+        .searchable-select {
+            position: relative;
+        }
+
+        .searchable-select .select-display {
+            width: 100%;
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            background: white;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .searchable-select .select-display:focus {
+            outline: none;
+            border-color: #1e88e5;
+        }
+
+        .searchable-select .dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            z-index: 1000;
+            display: none;
+            max-height: 300px;
+            overflow: hidden;
+        }
+
+        .searchable-select .dropdown.show {
+            display: block;
+        }
+
+        .searchable-select .search-input {
+            width: 100%;
+            padding: 10px 15px;
+            border: none;
+            border-bottom: 1px solid #eee;
+            font-size: 14px;
+        }
+
+        .searchable-select .search-input:focus {
+            outline: none;
+        }
+
+        .searchable-select .options {
+            max-height: 250px;
+            overflow-y: auto;
+        }
+
+        .searchable-select .option {
+            padding: 10px 15px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .searchable-select .option:hover {
+            background: #e3f2fd;
+        }
+
+        .searchable-select .option.selected {
+            background: #1e88e5;
+            color: white;
+        }
+
+        .searchable-select .option .emp-id {
+            font-size: 12px;
+            color: #999;
+        }
+
+        .searchable-select .option.selected .emp-id {
+            color: rgba(255,255,255,0.7);
+        }
+
+        .searchable-select .no-results {
+            padding: 15px;
+            text-align: center;
+            color: #999;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            border-bottom: 2px solid #eee;
+            margin-bottom: 20px;
+        }
+
+        .tab {
+            padding: 12px 24px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -2px;
+            transition: all 0.3s;
+        }
+
+        .tab:hover {
+            background: #f8f9fa;
+        }
+
+        .tab.active {
+            border-bottom-color: #1e88e5;
+            color: #1e88e5;
+            font-weight: 600;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Modal */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 10px;
+            max-width: 900px;
+            width: 95%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h3 {
+            font-size: 18px;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #999;
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        .modal-footer {
+            padding: 15px 20px;
+            border-top: 1px solid #eee;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        /* Slip Gaji */
+        .slip-gaji {
+            background: white;
+            padding: 0;
+            border: none;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .slip-header {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 50%, #1e3a5f 100%);
+            padding: 25px 30px;
+            position: relative;
+            color: white;
+        }
+
+        .slip-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 200px;
+            height: 100%;
+            background: linear-gradient(135deg, transparent 0%, rgba(255,255,255,0.05) 100%);
+        }
+
+        .slip-header .company-logo {
+            max-width: 75px;
+            max-height: 75px;
+            flex-shrink: 0;
+            background: white;
+            padding: 8px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .slip-header .company-info {
+            flex: 1;
+        }
+
+        .slip-header h2 {
+            font-size: 20px;
+            color: white;
+            margin-bottom: 4px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .slip-header .company-address {
+            font-size: 11px;
+            color: rgba(255,255,255,0.85);
+            margin: 4px 0 0 0;
+            font-style: italic;
+        }
+
+        .slip-header p {
+            font-size: 12px;
+            color: rgba(255,255,255,0.9);
+            margin: 2px 0;
+        }
+
+        .slip-header .slip-badge {
+            background: linear-gradient(135deg, #ffd700 0%, #ffb300 100%);
+            color: #1e3a5f;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 4px 15px rgba(255,215,0,0.3);
+        }
+
+        .slip-periode-box {
+            text-align: right;
+            flex-shrink: 0;
+        }
+
+        .slip-periode-box .periode-label {
+            font-size: 11px;
+            color: rgba(255,255,255,0.7);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .slip-periode-box .periode-value {
+            font-size: 14px;
+            font-weight: 600;
+            color: white;
+            margin-top: 2px;
+        }
+
+        .slip-body-content {
+            padding: 25px 30px;
+        }
+
+        .slip-lembur-section {
+            margin-top: 25px;
+            border: none;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+        }
+
+        .slip-lembur-header {
+            background: linear-gradient(135deg, #ff9800 0%, #ffa726 100%);
+            color: white;
+            padding: 12px 18px;
+            font-weight: 600;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .slip-lembur-body {
+            padding: 18px;
+            background: #fffbf5;
+        }
+
+        .lembur-details-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 8px;
+        }
+
+        .lembur-details-table thead th {
+            background: linear-gradient(135deg, #fff8e1 0%, #ffecb3 100%);
+            padding: 12px;
+            text-align: left;
+            font-size: 12px;
+            font-weight: 600;
+            border-bottom: 2px solid #ffcc80;
+            color: #5d4037;
+        }
+
+        .lembur-details-table tbody td {
+            padding: 10px 12px;
+            font-size: 12px;
+            border-bottom: 1px solid #ffe0b2;
+        }
+
+        .lembur-details-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .lembur-details-table tbody tr:hover {
+            background: #fff3e0;
+        }
+
+        .lembur-details-table td:last-child,
+        .lembur-details-table th:last-child {
+            text-align: right;
+            font-weight: 600;
+        }
+
+        .lembur-details-table td:nth-child(3),
+        .lembur-details-table td:nth-child(4),
+        .lembur-details-table th:nth-child(3),
+        .lembur-details-table th:nth-child(4) {
+            text-align: center;
+        }
+
+        .slip-title {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .slip-title h3 {
+            font-size: 16px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .slip-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px 20px;
+            margin-bottom: 25px;
+            font-size: 13px;
+            background: linear-gradient(135deg, #f8fafc 0%, #e8f4f8 100%);
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid #e0e7ee;
+        }
+
+        .slip-info-item {
+            display: flex;
+            align-items: center;
+        }
+
+        .slip-info-item label {
+            width: 110px;
+            font-weight: 600;
+            color: #1e3a5f;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .slip-info-item span {
+            color: #333;
+            font-weight: 500;
+        }
+
+        .slip-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            margin-bottom: 25px;
+        }
+
+        .slip-section {
+            border: none;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+        }
+
+        .slip-section-header {
+            background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%);
+            color: white;
+            padding: 12px 18px;
+            font-weight: 600;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .slip-section-header.potongan {
+            background: linear-gradient(135deg, #c62828 0%, #e53935 100%);
+        }
+
+        .slip-section-body {
+            padding: 18px;
+            background: #fafbfc;
+        }
+
+        .slip-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #eef2f5;
+            font-size: 13px;
+            transition: background 0.2s;
+        }
+
+        .slip-row:hover {
+            background: rgba(30,58,95,0.02);
+        }
+
+        .slip-row:last-child {
+            border-bottom: none;
+        }
+
+        .slip-row.sub-item {
+            padding-left: 18px;
+            font-size: 12px;
+            color: #666;
+            background: rgba(0,0,0,0.01);
+            border-radius: 4px;
+            margin: 2px 0;
+        }
+
+        .slip-row.total {
+            font-weight: 700;
+            border-top: 2px solid #1e3a5f;
+            border-bottom: none;
+            margin-top: 12px;
+            padding-top: 12px;
+            background: linear-gradient(135deg, rgba(30,58,95,0.05) 0%, rgba(45,90,135,0.05) 100%);
+            border-radius: 6px;
+            padding: 12px;
+            margin-left: -8px;
+            margin-right: -8px;
+        }
+
+        .slip-total {
+            background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%);
+            padding: 20px 25px;
+            border-radius: 12px;
+            margin-top: 25px;
+            color: white;
+            box-shadow: 0 4px 15px rgba(30,58,95,0.3);
+        }
+
+        .slip-total .row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            font-size: 14px;
+            color: rgba(255,255,255,0.9);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .slip-total .row:last-child {
+            border-bottom: none;
+        }
+
+        .slip-total .row.grand-total {
+            font-size: 22px;
+            font-weight: 700;
+            color: #ffd700;
+            border-top: 2px solid rgba(255,215,0,0.4);
+            border-bottom: none;
+            margin-top: 12px;
+            padding-top: 18px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .slip-footer {
+            margin-top: 35px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            text-align: center;
+            font-size: 13px;
+            padding-top: 25px;
+            border-top: 2px dashed #e0e7ee;
+        }
+
+        .signature-box {
+            padding: 20px;
+            position: relative;
+            text-align: center;
+            min-height: 160px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            background: linear-gradient(135deg, #fafbfc 0%, #f5f7f9 100%);
+            border-radius: 10px;
+            border: 1px solid #e8eef3;
+        }
+
+        .signature-box .line {
+            border-top: 2px solid #1e3a5f;
+            padding-top: 8px;
+            text-align: center;
+            margin-top: auto;
+            font-weight: 600;
+            color: #1e3a5f;
+        }
+
+        .signature-box .stamp-image {
+            display: block;
+            margin: 15px auto 10px;
+            max-width: 90px;
+            max-height: 90px;
+            opacity: 0.85;
+        }
+
+        .signature-box p {
+            margin-bottom: 10px;
+            color: #666;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .slip-note {
+            margin-top: 20px;
+            padding: 15px;
+            background: linear-gradient(135deg, #fff8e1 0%, #ffecb3 100%);
+            border-radius: 8px;
+            font-size: 11px;
+            color: #5d4037;
+            text-align: center;
+            border-left: 4px solid #ff9800;
+        }
+
+        /* Page sections */
+        .page-section {
+            display: none;
+        }
+
+        .page-section.active {
+            display: block;
+        }
+
+        /* Badge */
+        .badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        .badge-success {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .badge-warning {
+            background: #fff3e0;
+            color: #ef6c00;
+        }
+
+        /* Alert */
+        .alert {
+            padding: 15px 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+
+        .alert-info {
+            background: #e3f2fd;
+            color: #1565c0;
+            border-left: 4px solid #1e88e5;
+        }
+
+        /* Toolbar */
+        .toolbar {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        /* Lembur Items */
+        .lembur-item {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr auto;
+            gap: 10px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            align-items: center;
+        }
+
+        .lembur-item input {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        /* Checkbox */
+        .checkbox-cell {
+            width: 40px;
+            text-align: center;
+        }
+
+        /* Filter row */
+        .filter-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            align-items: center;
+        }
+
+        /* Status filter buttons */
+        .status-filters {
+            display: flex;
+            gap: 10px;
+        }
+
+        .status-filter {
+            padding: 8px 16px;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .status-filter:hover, .status-filter.active {
+            background: #1e88e5;
+            color: white;
+            border-color: #1e88e5;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 60px;
+                padding: 10px 0;
+            }
+
+            .sidebar .logo h2, .sidebar .logo p, .sidebar .menu-item span, .sidebar .submenu {
+                display: none;
+            }
+
+            .main-content {
+                margin-left: 60px;
+            }
+
+            .slip-details {
+                grid-template-columns: 1fr;
+            }
+
+            .slip-info {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="logo">
+                <h2>PT. Galaxy Food</h2>
+                <p>Payroll System</p>
+            </div>
+            <div class="menu">
+                <div class="menu-item active" onclick="showSection('dashboard')">
+                    <span>📊</span>
+                    <span>Dashboard</span>
+                </div>
+                <div class="menu-item" onclick="showSection('karyawan')">
+                    <span>👥</span>
+                    <span>Data Karyawan</span>
+                </div>
+                <div class="menu-item" onclick="toggleSubmenu('transaksi')">
+                    <span>💰</span>
+                    <span>Transaksi</span>
+                </div>
+                <div class="submenu" id="submenu-transaksi" style="display: block;">
+                    <div class="menu-item" onclick="showSection('bonus')">
+                        <span>🎁</span>
+                        <span>Bonus</span>
+                    </div>
+                    <div class="menu-item" onclick="showSection('lembur')">
+                        <span>⏰</span>
+                        <span>Lembur</span>
+                    </div>
+                    <div class="menu-item" onclick="showSection('potongan')">
+                        <span>➖</span>
+                        <span>Potongan</span>
+                    </div>
+                </div>
+                <div class="menu-item" onclick="toggleSubmenu('laporan')">
+                    <span>📄</span>
+                    <span>Laporan</span>
+                </div>
+                <div class="submenu" id="submenu-laporan">
+                    <div class="menu-item" onclick="showSection('slipgaji')">
+                        <span>📃</span>
+                        <span>Slip Gaji</span>
+                    </div>
+                </div>
+                <div class="menu-item" onclick="showSection('backup')">
+                    <span>💾</span>
+                    <span>Backup Data</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Header -->
+            <div class="header">
+                <h2>Menu Utama</h2>
+                <div class="period-selector">
+                    <select id="bulan">
+                        <option value="1">Januari</option>
+                        <option value="2">Februari</option>
+                        <option value="3">Maret</option>
+                        <option value="4">April</option>
+                        <option value="5">Mei</option>
+                        <option value="6">Juni</option>
+                        <option value="7">Juli</option>
+                        <option value="8">Agustus</option>
+                        <option value="9">September</option>
+                        <option value="10">Oktober</option>
+                        <option value="11">November</option>
+                        <option value="12" selected="">Desember</option>
+                    </select>
+                    <select id="tahun">
+                        <option value="2026">2026</option>
+                        <option value="2025" selected="">2025</option>
+                    </select>
+                    <button class="btn btn-primary" onclick="applyPeriod()">Terapkan Periode</button>
+                </div>
+            </div>
+
+            <!-- Dashboard Section -->
+            <div class="page-section active" id="section-dashboard">
+                <h2 style="margin-bottom: 10px;">Dashboard</h2>
+                <p style="color: #666; margin-bottom: 20px;">Kelola sistem penggajian dengan mudah</p>
+
+                <div class="stats-grid">
+                    <div class="stat-card blue">
+                        <h4>Total Karyawan</h4>
+                        <div class="value" id="stat-karyawan">0</div>
+                    </div>
+                    <div class="stat-card green">
+                        <h4>Total Gaji</h4>
+                        <div class="value" id="stat-gaji">Rp 0</div>
+                    </div>
+                    <div class="stat-card orange">
+                        <h4>Total Bonus</h4>
+                        <div class="value" id="stat-bonus">Rp 0</div>
+                    </div>
+                    <div class="stat-card purple">
+                        <h4>Total Lembur</h4>
+                        <div class="value" id="stat-lembur">Rp 0</div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div>
+                            <h3>Aksi Cepat</h3>
+                        </div>
+                    </div>
+                    <div class="quick-actions">
+                        <div class="quick-action-btn" onclick="showSection('karyawan'); openModal('modal-tambah-karyawan');">
+                            <span style="font-size: 24px;">➕</span>
+                            <div>Tambah Karyawan</div>
+                        </div>
+                        <div class="quick-action-btn" onclick="showSection('bonus')">
+                            <span style="font-size: 24px;">🎁</span>
+                            <div>Input Bonus</div>
+                        </div>
+                        <div class="quick-action-btn" onclick="showSection('lembur')">
+                            <span style="font-size: 24px;">⏰</span>
+                            <div>Input Lembur</div>
+                        </div>
+                        <div class="quick-action-btn" onclick="showSection('slipgaji')">
+                            <span style="font-size: 24px;">📃</span>
+                            <div>Buat Slip Gaji</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Data Karyawan Section -->
+            <div class="page-section" id="section-karyawan">
+                <div class="card">
+                    <div class="card-header">
+                        <div>
+                            <h3>Data Karyawan</h3>
+                            <p>Kelola data karyawan perusahaan</p>
+                        </div>
+                    </div>
+                    <div class="toolbar">
+                        <button class="btn btn-primary" onclick="openModal('modal-tambah-karyawan')">➕ Tambah</button>
+                        <button class="btn btn-secondary" onclick="openModal('modal-template')">📋 Template</button>
+                        <button class="btn btn-success" onclick="importExcel()">📥 Import</button>
+                        <button class="btn btn-warning" onclick="exportExcel()">📤 Export</button>
+                        <select class="form-control" style="width: auto;" id="filter-dept" onchange="filterKaryawan()">
+                            <option value="">Semua Dept</option>
+                            <option value="Produksi">Produksi</option>
+                            <option value="QC">QC</option>
+                            <option value="HRD">HRD</option>
+                            <option value="Finance">Finance</option>
+                            <option value="Marketing">Marketing</option>
+                        </select>
+                        <button class="btn btn-danger" onclick="hapusKaryawanTerpilih()">🗑️ Hapus (<span id="selected-count">0</span>)</button>
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th class="checkbox-cell"><input type="checkbox" id="select-all" onchange="toggleSelectAll()"></th>
+                                    <th>ID</th>
+                                    <th>Nama Karyawan</th>
+                                    <th>Jabatan</th>
+                                    <th>Departemen</th>
+                                    <th>Gaji Pokok</th>
+                                    <th>Tunjangan</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabel-karyawan">
+                            </tbody>
+                        </table>
+                    </div>
+                    <p style="margin-top: 15px; color: #666;">Data Karyawan: <span id="jumlah-karyawan">0</span> data</p>
+                </div>
+            </div>
+
+            <!-- Bonus Section -->
+            <div class="page-section" id="section-bonus">
+                <div class="card">
+                    <div class="card-header">
+                        <div>
+                            <h3>Kelola Bonus</h3>
+                            <p>Input bonus target dan bonus khusus karyawan</p>
+                        </div>
+                    </div>
+                    <div class="tabs">
+                        <div class="tab active" onclick="switchTab('bonus-target', this)">Bonus Target</div>
+                        <div class="tab" onclick="switchTab('bonus-khusus', this)">Bonus Khusus</div>
+                    </div>
+                    <div class="tab-content active" id="tab-bonus-target">
+                        <h4 style="margin-bottom: 15px;">Pengaturan Bonus Target</h4>
+                        <div style="display: flex; gap: 15px; margin-bottom: 20px; align-items: flex-end;">
+                            <div class="form-group" style="flex: 1; margin-bottom: 0;">
+                                <label>Total Bonus Target (akan dibagi rata)</label>
+                                <input type="text" class="form-control" id="total-bonus-target" placeholder="0" oninput="formatNominalInput(this)">
+                            </div>
+                            <button class="btn btn-primary" onclick="hitungDistribusiBonus()">Hitung &amp; Distribusi</button>
+                            <button class="btn btn-success" onclick="simpanSemuaBonusTarget()">Simpan Semua</button>
+                        </div>
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Karyawan</th>
+                                        <th>Persentase</th>
+                                        <th>Nominal Bonus</th>
+                                        <th>Kunci</th>
+                                        <th>Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tabel-bonus-target">
+                                </tbody>
+                            </table>
+                        </div>
+                        <h4 style="margin: 30px 0 15px;">Riwayat Bonus Target</h4>
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Karyawan</th>
+                                        <th>Periode</th>
+                                        <th>Persentase</th>
+                                        <th>Nilai</th>
+                                        <th>Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="riwayat-bonus-target">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="tab-content" id="tab-bonus-khusus">
+                        <h4 style="margin-bottom: 15px;">Tambah Bonus Khusus</h4>
+                        <div style="display: grid; grid-template-columns: 2fr 1fr 2fr auto; gap: 15px; align-items: flex-end;">
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label>Karyawan</label>
+                                <div class="searchable-select" id="select-bonus-khusus">
+                                    <div class="select-display" onclick="toggleDropdown('select-bonus-khusus')">
+                                        <span>Pilih Karyawan</span>
+                                        <span>▼</span>
+                                    </div>
+                                    <div class="dropdown">
+                                        <input type="text" class="search-input" placeholder="Cari karyawan..." oninput="filterOptions('select-bonus-khusus', this.value)">
+                                        <div class="options"></div>
+                                    </div>
+                                    <input type="hidden" id="bonus-khusus-karyawan">
+                                </div>
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label>Nominal Bonus</label>
+                                <input type="text" class="form-control" id="bonus-khusus-nominal" placeholder="0" oninput="formatNominalInput(this)">
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label>Keterangan</label>
+                                <input type="text" class="form-control" id="bonus-khusus-keterangan" placeholder="Keterangan bonus">
+                            </div>
+                            <button class="btn btn-primary" onclick="tambahBonusKhusus()">Tambah</button>
+                        </div>
+                        <h4 style="margin: 30px 0 15px;">Riwayat Bonus Khusus</h4>
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Karyawan</th>
+                                        <th>Periode</th>
+                                        <th>Bonus</th>
+                                        <th>Keterangan</th>
+                                        <th>Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="riwayat-bonus-khusus">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lembur Section -->
+            <div class="page-section" id="section-lembur">
+                <div class="card">
+                    <div class="card-header">
+                        <div>
+                            <h3>Input Lembur</h3>
+                            <p>Input data lembur karyawan</p>
+                        </div>
+                    </div>
+                    <h4 style="margin-bottom: 15px;">Input Lembur</h4>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                        <div class="form-group">
+                            <label>Karyawan</label>
+                            <div class="searchable-select" id="select-lembur">
+                                <div class="select-display" onclick="toggleDropdown('select-lembur')">
+                                    <span>Pilih Karyawan</span>
+                                    <span>▼</span>
+                                </div>
+                                <div class="dropdown">
+                                    <input type="text" class="search-input" placeholder="Cari karyawan..." oninput="filterOptions('select-lembur', this.value)">
+                                    <div class="options"></div>
+                                </div>
+                                <input type="hidden" id="lembur-karyawan">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Tanggal</label>
+                            <input type="date" class="form-control" id="lembur-tanggal">
+                        </div>
+                    </div>
+                    <div style="margin-bottom: 15px;">
+                        <label style="font-weight: 500; margin-bottom: 10px; display: block;">Item Lembur</label>
+                        <div id="lembur-items">
+                            <div class="lembur-item">
+                                <input type="text" placeholder="Nama Barang/Kegiatan" class="lembur-nama">
+                                <input type="number" placeholder="Qty" class="lembur-qty" value="1" onchange="hitungTotalLembur()">
+                                <input type="number" placeholder="Harga" class="lembur-harga" value="0" onchange="hitungTotalLembur()">
+                                <div class="lembur-subtotal">Rp 0</div>
+                                <button class="btn btn-danger btn-sm" onclick="hapusItemLembur(this)">🗑️</button>
+                            </div>
+                        </div>
+                        <button class="btn btn-secondary" onclick="tambahItemLembur()">➕ Tambah Item</button>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; background: #f8f9fa; padding: 15px; border-radius: 5px;">
+                        <strong>Total: <span id="total-lembur">Rp 0</span></strong>
+                        <button class="btn btn-success" onclick="simpanLembur()">Simpan Lembur</button>
+                    </div>
+                    <h4 style="margin: 30px 0 15px;">Riwayat Lembur</h4>
+                    <div class="form-group" style="width: 250px;">
+                        <div class="searchable-select" id="select-filter-lembur">
+                            <div class="select-display" onclick="toggleDropdown('select-filter-lembur')">
+                                <span>Semua Karyawan</span>
+                                <span>▼</span>
+                            </div>
+                            <div class="dropdown">
+                                <input type="text" class="search-input" placeholder="Cari karyawan..." oninput="filterOptions('select-filter-lembur', this.value)">
+                                <div class="options"></div>
+                            </div>
+                            <input type="hidden" id="filter-lembur-karyawan">
+                        </div>
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Karyawan</th>
+                                    <th>Periode</th>
+                                    <th>Tanggal</th>
+                                    <th>Nama Barang</th>
+                                    <th>Qty</th>
+                                    <th>Harga</th>
+                                    <th>Total</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="riwayat-lembur">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Potongan Section -->
+            <div class="page-section" id="section-potongan">
+                <div class="card">
+                    <div class="card-header">
+                        <div>
+                            <h3>Input Potongan</h3>
+                            <p>Kelola potongan absensi dan kompensasi karyawan</p>
+                        </div>
+                    </div>
+                    <div class="tabs">
+                        <div class="tab active" onclick="switchTab('potongan-absensi', this)">Potongan Absensi</div>
+                        <div class="tab" onclick="switchTab('potongan-kompensasi', this)">Potongan Kompensasi</div>
+                    </div>
+                    <div class="tab-content active" id="tab-potongan-absensi">
+                        <div class="alert alert-info">
+                            <strong>Potongan per hari bisa dikustom per karyawan (default Rp 60.000)</strong> | Ijin dihitung sama dengan Alpa (keduanya dipotong)
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+                            <strong>Total Potongan: <span id="total-potongan-absensi">Rp 0</span></strong>
+                            <input type="text" class="form-control" id="search-potongan-absensi" placeholder="🔍 Cari nama karyawan..." style="width: 250px;" oninput="filterPotonganAbsensi()">
+                        </div>
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Karyawan</th>
+                                        <th>Alpa</th>
+                                        <th>Ijin</th>
+                                        <th>Tarif/Hari</th>
+                                        <th>Potongan</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tabel-potongan-absensi">
+                                </tbody>
+                            </table>
+                        </div>
+                        <button class="btn btn-success" style="margin-top: 15px;" onclick="simpanPotonganAbsensi()">Simpan Semua Potongan Absensi</button>
+                    </div>
+                    <div class="tab-content" id="tab-potongan-kompensasi">
+                        <h4 style="margin-bottom: 15px;">Input Potongan Kompensasi</h4>
+                        <div style="display: grid; grid-template-columns: 2fr 1fr 2fr auto; gap: 15px; align-items: flex-end;">
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label>Karyawan</label>
+                                <div class="searchable-select" id="select-potongan-kompensasi">
+                                    <div class="select-display" onclick="toggleDropdown('select-potongan-kompensasi')">
+                                        <span>Pilih Karyawan</span>
+                                        <span>▼</span>
+                                    </div>
+                                    <div class="dropdown">
+                                        <input type="text" class="search-input" placeholder="Cari karyawan..." oninput="filterOptions('select-potongan-kompensasi', this.value)">
+                                        <div class="options"></div>
+                                    </div>
+                                    <input type="hidden" id="potongan-kompensasi-karyawan">
+                                </div>
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label>Nominal Potongan</label>
+                                <input type="text" class="form-control" id="potongan-kompensasi-nominal" placeholder="0" oninput="formatNominalInput(this)">
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label>Keterangan</label>
+                                <input type="text" class="form-control" id="potongan-kompensasi-keterangan" placeholder="Keterangan potongan">
+                            </div>
+                            <button class="btn btn-primary" onclick="tambahPotonganKompensasi()">Tambah Potongan</button>
+                        </div>
+                        <h4 style="margin: 30px 0 15px;">Riwayat Potongan</h4>
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Karyawan</th>
+                                        <th>Periode</th>
+                                        <th>Alpa</th>
+                                        <th>Ijin</th>
+                                        <th>Pot. Absensi</th>
+                                        <th>Pot. Kompensasi</th>
+                                        <th>Total</th>
+                                        <th>Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="riwayat-potongan">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Slip Gaji Section -->
+            <div class="page-section" id="section-slipgaji">
+                <div class="card">
+                    <div class="card-header">
+                        <div>
+                            <h3>Slip Gaji</h3>
+                            <p>Generate dan kelola slip gaji karyawan</p>
+                        </div>
+                    </div>
+                    <h4 style="margin-bottom: 15px;">Generate Slip Gaji</h4>
+                    <div style="display: flex; gap: 15px; align-items: flex-end; margin-bottom: 30px;">
+                        <div class="form-group" style="flex: 1; margin-bottom: 0;">
+                            <div class="searchable-select" id="select-slip-gaji">
+                                <div class="select-display" onclick="toggleDropdown('select-slip-gaji')">
+                                    <span>Pilih Karyawan</span>
+                                    <span>▼</span>
+                                </div>
+                                <div class="dropdown">
+                                    <input type="text" class="search-input" placeholder="Cari karyawan..." oninput="filterOptions('select-slip-gaji', this.value)">
+                                    <div class="options"></div>
+                                </div>
+                                <input type="hidden" id="slip-gaji-karyawan">
+                            </div>
+                        </div>
+                        <button class="btn btn-primary" onclick="generateSlipGaji()">Generate</button>
+                        <button class="btn btn-success" onclick="generateSemuaSlipGaji()">Generate Semua</button>
+                    </div>
+                    <h4 style="margin-bottom: 15px;">Daftar Slip Gaji</h4>
+                    <div class="status-filters" style="margin-bottom: 15px;">
+                        <button class="status-filter active" onclick="filterSlipGaji('semua', this)">Semua Status</button>
+                        <button class="status-filter" onclick="filterSlipGaji('dibayar', this)">Sudah Dibayar</button>
+                        <button class="status-filter" onclick="filterSlipGaji('belum', this)">Belum Dibayar</button>
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Karyawan</th>
+                                    <th>Periode</th>
+                                    <th>Gaji Bersih</th>
+                                    <th>Status</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="daftar-slip-gaji">
+                                <tr>
+                                    <td colspan="6" style="text-align: center; padding: 40px; color: #999;">
+                                        Belum ada slip gaji yang di-generate untuk periode ini.<br>
+                                        Klik "Generate" atau "Generate Semua" untuk membuat slip gaji.
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Backup Section -->
+            <div class="page-section" id="section-backup">
+                <div class="card">
+                    <div class="card-header">
+                        <div>
+                            <h3>Pengaturan &amp; Backup</h3>
+                            <p>Kelola logo, stempel, backup dan restore data sistem</p>
+                        </div>
+                    </div>
+                    <div class="tabs">
+                        <div class="tab active" onclick="switchTab('logo-stempel', this)">Logo &amp; Stempel</div>
+                        <div class="tab" onclick="switchTab('backup-data', this)">Backup Data</div>
+                        <div class="tab" onclick="switchTab('restore-data', this)">Restore Data</div>
+                    </div>
+                    <div class="tab-content active" id="tab-logo-stempel">
+                        <div class="alert alert-info">
+                            Upload logo perusahaan dan stempel untuk slip gaji. Gambar akan disimpan dalam aplikasi dan digunakan saat export slip gaji ke JPG.
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 20px;">
+                            <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; border: 2px dashed #ddd;">
+                                <h4 style="margin-bottom: 15px; color: #1e3a5f;">🏢 Logo Perusahaan</h4>
+                                <div id="logo-preview" style="width: 120px; height: 120px; border: 1px solid #ddd; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-bottom: 15px; background: white; overflow: hidden;">
+                                    <span style="color: #999; font-size: 12px; text-align: center;">Belum ada logo</span>
+                                </div>
+                                <input type="file" id="upload-logo" accept="image/*" style="display: none;" onchange="handleLogoUpload(event)">
+                                <div style="display: flex; gap: 10px;">
+                                    <button class="btn btn-primary" onclick="document.getElementById('upload-logo').click()">📤 Upload Logo</button>
+                                    <button class="btn btn-danger btn-sm" onclick="hapusLogo()" id="btn-hapus-logo" style="display: none;">🗑️</button>
+                                </div>
+                                <p style="font-size: 11px; color: #666; margin-top: 10px;">Format: JPG, PNG. Maks: 500KB. Rekomendasi: 200x200px</p>
+                            </div>
+                            <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; border: 2px dashed #ddd;">
+                                <h4 style="margin-bottom: 15px; color: #1e3a5f;">🔏 Stempel/Cap</h4>
+                                <div id="stempel-preview" style="width: 120px; height: 120px; border: 1px solid #ddd; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-bottom: 15px; background: white; overflow: hidden;">
+                                    <span style="color: #999; font-size: 12px; text-align: center;">Belum ada stempel</span>
+                                </div>
+                                <input type="file" id="upload-stempel" accept="image/*" style="display: none;" onchange="handleStempelUpload(event)">
+                                <div style="display: flex; gap: 10px;">
+                                    <button class="btn btn-primary" onclick="document.getElementById('upload-stempel').click()">📤 Upload Stempel</button>
+                                    <button class="btn btn-danger btn-sm" onclick="hapusStempel()" id="btn-hapus-stempel" style="display: none;">🗑️</button>
+                                </div>
+                                <p style="font-size: 11px; color: #666; margin-top: 10px;">Format: PNG (transparan). Maks: 500KB. Rekomendasi: 200x200px</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tab-content" id="tab-backup-data">
+                        <div class="alert alert-info">
+                            Backup data akan menyimpan semua data karyawan, transaksi, slip gaji, serta logo dan stempel dalam format JSON.
+                        </div>
+                        <button class="btn btn-primary" onclick="backupData()">📥 Download Backup</button>
+                    </div>
+                    <div class="tab-content" id="tab-restore-data">
+                        <div class="alert alert-info">
+                            Restore data akan mengembalikan semua data dari file backup. Data saat ini akan ditimpa.
+                        </div>
+                        <input type="file" id="restore-file" accept=".json" style="margin-bottom: 15px;">
+                        <br>
+                        <button class="btn btn-warning" onclick="restoreData()">📤 Restore Data</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Tambah Karyawan -->
+    <div class="modal" id="modal-tambah-karyawan">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h3>Tambah Karyawan</h3>
+                <button class="modal-close" onclick="closeModal('modal-tambah-karyawan')">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>ID Karyawan</label>
+                    <input type="text" class="form-control" id="input-id" placeholder="KRY001">
+                </div>
+                <div class="form-group">
+                    <label>Nama Lengkap</label>
+                    <input type="text" class="form-control" id="input-nama" placeholder="Nama lengkap">
+                </div>
+                <div class="form-group">
+                    <label>Jabatan</label>
+                    <input type="text" class="form-control" id="input-jabatan" placeholder="Jabatan">
+                </div>
+                <div class="form-group">
+                    <label>Departemen</label>
+                    <select class="form-control" id="input-departemen">
+                        <option value="Produksi">Produksi</option>
+                        <option value="QC">QC</option>
+                        <option value="HRD">HRD</option>
+                        <option value="Finance">Finance</option>
+                        <option value="Marketing">Marketing</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Gaji Pokok</label>
+                    <input type="text" class="form-control" id="input-gaji" placeholder="0" oninput="formatNominalInput(this)">
+                </div>
+                <div class="form-group">
+                    <label>Tunjangan</label>
+                    <input type="text" class="form-control" id="input-tunjangan" placeholder="0" oninput="formatNominalInput(this)">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('modal-tambah-karyawan')">Batal</button>
+                <button class="btn btn-primary" onclick="simpanKaryawan()">Simpan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Edit Karyawan -->
+    <div class="modal" id="modal-edit-karyawan">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h3>Edit Karyawan</h3>
+                <button class="modal-close" onclick="closeModal('modal-edit-karyawan')">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>ID Karyawan</label>
+                    <input type="text" class="form-control" id="edit-id" readonly="">
+                </div>
+                <div class="form-group">
+                    <label>Nama Lengkap</label>
+                    <input type="text" class="form-control" id="edit-nama">
+                </div>
+                <div class="form-group">
+                    <label>Jabatan</label>
+                    <input type="text" class="form-control" id="edit-jabatan">
+                </div>
+                <div class="form-group">
+                    <label>Departemen</label>
+                    <select class="form-control" id="edit-departemen">
+                        <option value="Produksi">Produksi</option>
+                        <option value="QC">QC</option>
+                        <option value="HRD">HRD</option>
+                        <option value="Finance">Finance</option>
+                        <option value="Marketing">Marketing</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Gaji Pokok</label>
+                    <input type="text" class="form-control" id="edit-gaji" oninput="formatNominalInput(this)">
+                </div>
+                <div class="form-group">
+                    <label>Tunjangan</label>
+                    <input type="text" class="form-control" id="edit-tunjangan" oninput="formatNominalInput(this)">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('modal-edit-karyawan')">Batal</button>
+                <button class="btn btn-primary" onclick="updateKaryawan()">Update</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Template -->
+    <div class="modal" id="modal-template">
+        <div class="modal-content" style="max-width: 700px;">
+            <div class="modal-header">
+                <h3>Template Import Data Excel</h3>
+                <button class="modal-close" onclick="closeModal('modal-template')">×</button>
+            </div>
+            <div class="modal-body">
+                <p style="margin-bottom: 15px;">Format Excel untuk import data karyawan. Download template dan isi sesuai format:</p>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nama</th>
+                                <th>Jabatan</th>
+                                <th>Departemen</th>
+                                <th>Gaji Pokok</th>
+                                <th>Tunjangan</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>KRY001</td>
+                                <td>John Doe</td>
+                                <td>Staff</td>
+                                <td>Produksi</td>
+                                <td>3000000</td>
+                                <td>500000</td>
+                            </tr>
+                            <tr>
+                                <td>KRY002</td>
+                                <td>Jane Smith</td>
+                                <td>Supervisor</td>
+                                <td>QC</td>
+                                <td>4500000</td>
+                                <td>750000</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p style="margin-top: 15px; color: #666; font-size: 13px;">
+                    Pastikan header kolom sesuai: ID, Nama, Jabatan, Departemen, Gaji Pokok, Tunjangan
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" onclick="downloadTemplate()">📥 Download Template Excel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Preview Slip Gaji -->
+    <div class="modal" id="modal-slip-gaji">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Preview Slip Gaji</h3>
+                <button class="modal-close" onclick="closeModal('modal-slip-gaji')">×</button>
+            </div>
+            <div class="modal-body">
+                <div id="slip-gaji-content">
+                    <!-- Slip Gaji Content -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-success" onclick="exportSlipGajiJPG()">📷 Export JPG</button>
+                <button class="btn btn-primary" onclick="uploadBuktiTransfer()">📤 Upload Bukti Transfer</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Upload Bukti Transfer -->
+    <div class="modal" id="modal-bukti-transfer">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h3>Upload Bukti Transfer</h3>
+                <button class="modal-close" onclick="closeModal('modal-bukti-transfer')">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Pilih Gambar Bukti Transfer</label>
+                    <input type="file" class="form-control" id="input-bukti-transfer" accept="image/*">
+                </div>
+                <div id="preview-bukti-transfer" style="margin-top: 15px;"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('modal-bukti-transfer')">Batal</button>
+                <button class="btn btn-primary" onclick="simpanBuktiTransfer()">Simpan</button>
+            </div>
+        </div>
+    </div>
+
+    <input type="file" id="import-file" accept=".csv,.xlsx,.xls" style="display: none;" onchange="handleImport(event)">
+
+    <script>
+        /* eslint-disable no-restricted-globals, no-alert */
+
+        // Storage wrapper for Poe iframe compatibility
+        const memoryStore = {};
+        const storage = {
+            getItem: function(key) {
+                try {
+                    return localStorage.getItem(key);
+                } catch {
+                    return memoryStore[key] || null;
+                }
+            },
+            setItem: function(key, value) {
+                try {
+                    localStorage.setItem(key, value);
+                } catch {
+                    memoryStore[key] = value;
+                }
+            },
+            removeItem: function(key) {
+                try {
+                    localStorage.removeItem(key);
+                } catch {
+                    delete memoryStore[key];
+                }
+            }
+        };
+
+        // Data Store
+        let karyawan = JSON.parse(storage.getItem('karyawan')) || [];
+        let bonusTarget = JSON.parse(storage.getItem('bonusTarget')) || [];
+        let bonusKhusus = JSON.parse(storage.getItem('bonusKhusus')) || [];
+        let lembur = JSON.parse(storage.getItem('lembur')) || [];
+        let potonganAbsensi = JSON.parse(storage.getItem('potonganAbsensi')) || [];
+        let potonganKompensasi = JSON.parse(storage.getItem('potonganKompensasi')) || [];
+        let slipGaji = JSON.parse(storage.getItem('slipGaji')) || [];
+        let companyLogo = storage.getItem('companyLogo') || null;
+        let companyStempel = storage.getItem('companyStempel') || null;
+        let currentSlipId = null;
+
+        // Tarif potongan absensi default per hari (bisa dikustom per karyawan)
+        const DEFAULT_TARIF_POTONGAN_ABSENSI = 60000;
+        let currentFilterStatus = 'semua';
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            const now = new Date();
+            document.getElementById('bulan').value = now.getMonth() + 1;
+            document.getElementById('tahun').value = now.getFullYear();
+            document.getElementById('lembur-tanggal').value = now.toISOString().split('T')[0];
+
+            updateAllViews();
+            initSearchableSelects();
+            initLogoStempelPreview();
+        });
+
+        // Initialize logo and stempel previews
+        function initLogoStempelPreview() {
+            if (companyLogo) {
+                document.getElementById('logo-preview').innerHTML = `<img src="${companyLogo}" style="max-width: 100%; max-height: 100%; object-fit: contain;">`;
+                document.getElementById('btn-hapus-logo').style.display = 'inline-flex';
+            }
+            if (companyStempel) {
+                document.getElementById('stempel-preview').innerHTML = `<img src="${companyStempel}" style="max-width: 100%; max-height: 100%; object-fit: contain;">`;
+                document.getElementById('btn-hapus-stempel').style.display = 'inline-flex';
+            }
+        }
+
+        // Handle logo upload
+        function handleLogoUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            if (file.size > 500 * 1024) {
+                showAlert('Ukuran file terlalu besar! Maksimal 500KB.', 'error');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                companyLogo = e.target.result;
+                storage.setItem('companyLogo', companyLogo);
+                document.getElementById('logo-preview').innerHTML = `<img src="${companyLogo}" style="max-width: 100%; max-height: 100%; object-fit: contain;">`;
+                document.getElementById('btn-hapus-logo').style.display = 'inline-flex';
+                showAlert('Logo berhasil diupload!', 'success');
+            };
+            reader.readAsDataURL(file);
+            event.target.value = '';
+        }
+
+        // Handle stempel upload
+        function handleStempelUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            if (file.size > 500 * 1024) {
+                showAlert('Ukuran file terlalu besar! Maksimal 500KB.', 'error');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                companyStempel = e.target.result;
+                storage.setItem('companyStempel', companyStempel);
+                document.getElementById('stempel-preview').innerHTML = `<img src="${companyStempel}" style="max-width: 100%; max-height: 100%; object-fit: contain;">`;
+                document.getElementById('btn-hapus-stempel').style.display = 'inline-flex';
+                showAlert('Stempel berhasil diupload!', 'success');
+            };
+            reader.readAsDataURL(file);
+            event.target.value = '';
+        }
+
+        // Delete logo
+        function hapusLogo() {
+            showConfirm('Hapus logo perusahaan?', () => {
+                companyLogo = null;
+                storage.removeItem('companyLogo');
+                document.getElementById('logo-preview').innerHTML = '<span style="color: #999; font-size: 12px; text-align: center;">Belum ada logo</span>';
+                document.getElementById('btn-hapus-logo').style.display = 'none';
+                showAlert('Logo berhasil dihapus!', 'success');
+            });
+        }
+
+        // Delete stempel
+        function hapusStempel() {
+            showConfirm('Hapus stempel?', () => {
+                companyStempel = null;
+                storage.removeItem('companyStempel');
+                document.getElementById('stempel-preview').innerHTML = '<span style="color: #999; font-size: 12px; text-align: center;">Belum ada stempel</span>';
+                document.getElementById('btn-hapus-stempel').style.display = 'none';
+                showAlert('Stempel berhasil dihapus!', 'success');
+            });
+        }
+
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.searchable-select')) {
+                document.querySelectorAll('.searchable-select .dropdown').forEach(d => d.classList.remove('show'));
+            }
+        });
+
+        // Show notification modal
+        function showImportNotification(message) {
+            const modal = document.createElement('div');
+            modal.className = 'modal show';
+            modal.id = 'notification-modal';
+            modal.innerHTML = `
+                <div class="modal-content" style="max-width: 400px; text-align: center;">
+                    <div class="modal-body" style="padding: 30px;">
+                        <div style="font-size: 48px; margin-bottom: 15px;">✅</div>
+                        <h3 style="margin-bottom: 15px; color: #333;">Berhasil!</h3>
+                        <p style="color: #666; margin-bottom: 20px;">${message}</p>
+                        <button class="btn btn-primary" onclick="this.closest('.modal').remove()">OK</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        // Searchable Select Functions
+        function initSearchableSelects() {
+            updateSearchableSelect('select-bonus-khusus', 'bonus-khusus-karyawan');
+            updateSearchableSelect('select-lembur', 'lembur-karyawan');
+            updateSearchableSelect('select-filter-lembur', 'filter-lembur-karyawan', true);
+            updateSearchableSelect('select-potongan-kompensasi', 'potongan-kompensasi-karyawan');
+            updateSearchableSelect('select-slip-gaji', 'slip-gaji-karyawan');
+        }
+
+        function updateSearchableSelect(selectId, hiddenInputId, includeAll = false) {
+            const selectEl = document.getElementById(selectId);
+            if (!selectEl) return;
+
+            const optionsContainer = selectEl.querySelector('.options');
+            let html = '';
+
+            if (includeAll) {
+                html += `<div class="option" data-value="" onclick="selectOption('${selectId}', '', 'Semua Karyawan', '${hiddenInputId}')">
+                    <div>Semua Karyawan</div>
+                </div>`;
+            }
+
+            karyawan.forEach(k => {
+                html += `<div class="option" data-value="${k.id}" onclick="selectOption('${selectId}', '${k.id}', '${k.nama}', '${hiddenInputId}')">
+                    <div>${k.nama}</div>
+                    <div class="emp-id">${k.id} - ${k.jabatan}</div>
+                </div>`;
+            });
+
+            if (karyawan.length === 0 && !includeAll) {
+                html = '<div class="no-results">Tidak ada karyawan</div>';
+            }
+
+            optionsContainer.innerHTML = html;
+        }
+
+        function toggleDropdown(selectId) {
+            const selectEl = document.getElementById(selectId);
+            const dropdown = selectEl.querySelector('.dropdown');
+            const searchInput = selectEl.querySelector('.search-input');
+            
+            document.querySelectorAll('.searchable-select .dropdown').forEach(d => {
+                if (d !== dropdown) d.classList.remove('show');
+            });
+
+            dropdown.classList.toggle('show');
+            
+            if (dropdown.classList.contains('show')) {
+                searchInput.value = '';
+                searchInput.focus();
+                filterOptions(selectId, '');
+            }
+        }
+
+        function filterOptions(selectId, searchTerm) {
+            const selectEl = document.getElementById(selectId);
+            const options = selectEl.querySelectorAll('.option');
+            const term = searchTerm.toLowerCase();
+
+            options.forEach(option => {
+                const text = option.textContent.toLowerCase();
+                option.style.display = text.includes(term) ? 'block' : 'none';
+            });
+        }
+
+        function selectOption(selectId, value, text, hiddenInputId) {
+            const selectEl = document.getElementById(selectId);
+            const display = selectEl.querySelector('.select-display span:first-child');
+            const hiddenInput = document.getElementById(hiddenInputId);
+            const dropdown = selectEl.querySelector('.dropdown');
+
+            display.textContent = text;
+            hiddenInput.value = value;
+            dropdown.classList.remove('show');
+
+            // Remove selected class from all options
+            selectEl.querySelectorAll('.option').forEach(o => o.classList.remove('selected'));
+            // Add selected class to current option
+            const currentOption = selectEl.querySelector(`.option[data-value="${value}"]`);
+            if (currentOption) currentOption.classList.add('selected');
+
+            // Trigger filter if needed
+            if (selectId === 'select-filter-lembur') {
+                renderRiwayatLembur();
+            }
+        }
+
+        // Period
+        // Custom Alert Modal
+        function showAlert(message, type = 'info') {
+            const icons = {
+                success: '✅',
+                error: '❌',
+                warning: '⚠️',
+                info: 'ℹ️'
+            };
+            const colors = {
+                success: '#43a047',
+                error: '#e53935',
+                warning: '#ff9800',
+                info: '#1e88e5'
+            };
+
+            const modal = document.createElement('div');
+            modal.style.cssText = 'position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 10001; animation: fadeIn 0.2s ease;';
+
+            const content = document.createElement('div');
+            content.style.cssText = 'background: white; padding: 25px 35px; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); max-width: 400px; text-align: center; animation: slideIn 0.2s ease;';
+
+            const icon = document.createElement('div');
+            icon.style.cssText = 'font-size: 48px; margin-bottom: 15px;';
+            icon.textContent = icons[type];
+
+            const text = document.createElement('p');
+            text.style.cssText = 'color: #333; font-size: 15px; line-height: 1.6; margin-bottom: 20px;';
+            text.textContent = message;
+
+            const btnOk = document.createElement('button');
+            btnOk.style.cssText = `background: ${colors[type]}; color: white; border: none; padding: 10px 30px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 600;`;
+            btnOk.textContent = 'OK';
+            btnOk.addEventListener('click', (e) => {
+                e.stopPropagation();
+                modal.remove();
+            });
+
+            content.appendChild(icon);
+            content.appendChild(text);
+            content.appendChild(btnOk);
+            modal.appendChild(content);
+
+            // Prevent closing when clicking inside content
+            content.addEventListener('click', (e) => e.stopPropagation());
+
+            // Close when clicking outside (on backdrop)
+            modal.addEventListener('click', () => modal.remove());
+
+            document.body.appendChild(modal);
+        }
+
+        // Custom Confirm Modal
+        function showConfirm(message, onConfirm) {
+            const modal = document.createElement('div');
+            modal.style.cssText = 'position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 10001;';
+
+            const content = document.createElement('div');
+            content.style.cssText = 'background: white; padding: 25px 35px; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); max-width: 400px; text-align: center;';
+
+            const icon = document.createElement('div');
+            icon.style.cssText = 'font-size: 48px; margin-bottom: 15px;';
+            icon.textContent = '❓';
+
+            const text = document.createElement('p');
+            text.style.cssText = 'color: #333; font-size: 15px; line-height: 1.6; margin-bottom: 25px;';
+            text.textContent = message;
+
+            const btnContainer = document.createElement('div');
+            btnContainer.style.cssText = 'display: flex; gap: 12px; justify-content: center;';
+
+            const btnCancel = document.createElement('button');
+            btnCancel.style.cssText = 'background: #757575; color: white; border: none; padding: 10px 25px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 600;';
+            btnCancel.textContent = 'Batal';
+            btnCancel.addEventListener('click', (e) => {
+                e.stopPropagation();
+                modal.remove();
+            });
+
+            const btnConfirm = document.createElement('button');
+            btnConfirm.style.cssText = 'background: #e53935; color: white; border: none; padding: 10px 25px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 600;';
+            btnConfirm.textContent = 'Ya, Hapus';
+            btnConfirm.addEventListener('click', (e) => {
+                e.stopPropagation();
+                modal.remove();
+                onConfirm();
+            });
+
+            btnContainer.appendChild(btnCancel);
+            btnContainer.appendChild(btnConfirm);
+            content.appendChild(icon);
+            content.appendChild(text);
+            content.appendChild(btnContainer);
+            modal.appendChild(content);
+
+            // Prevent closing when clicking inside content
+            content.addEventListener('click', (e) => e.stopPropagation());
+
+            // Close when clicking outside (on backdrop)
+            modal.addEventListener('click', () => modal.remove());
+
+            document.body.appendChild(modal);
+        }
+
+        function getPeriode() {
+            const bulan = document.getElementById('bulan').value;
+            const tahun = document.getElementById('tahun').value;
+            const namaBulan = ['', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+                              'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+            return `${namaBulan[parseInt(bulan)]} ${tahun}`;
+        }
+
+        function getPeriodeKey() {
+            return `${document.getElementById('bulan').value}-${document.getElementById('tahun').value}`;
+        }
+
+        function applyPeriod() {
+            updateAllViews();
+            showAlert('Periode berhasil diterapkan: ' + getPeriode(), 'success');
+        }
+
+        // Navigation
+        function showSection(sectionName) {
+            document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
+            
+            document.getElementById('section-' + sectionName).classList.add('active');
+            
+            // Update active menu
+            document.querySelectorAll('.menu-item').forEach(m => {
+                if (m.getAttribute('onclick')?.includes(sectionName)) {
+                    m.classList.add('active');
+                }
+            });
+
+            updateAllViews();
+        }
+
+        function toggleSubmenu(name) {
+            const submenu = document.getElementById('submenu-' + name);
+            submenu.style.display = submenu.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function switchTab(tabName, element) {
+            const parent = element.closest('.card');
+            parent.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            parent.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            
+            element.classList.add('active');
+            document.getElementById('tab-' + tabName).classList.add('active');
+        }
+
+        // Modal
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.add('show');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('show');
+        }
+
+        // Format Currency
+        function formatRupiah(num) {
+            return 'Rp ' + formatNumber(num);
+        }
+
+        // Format angka dengan pemisah ribuan (titik)
+        function formatNumber(num) {
+            return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+        }
+
+        // Parse angka dari format dengan titik
+        function parseNumber(str) {
+            if (typeof str === 'number') return str;
+            return parseInt(str.toString().replace(/\./g, '')) || 0;
+        }
+
+        // Format input nominal dengan titik
+        function formatNominalInput(input) {
+            let value = input.value.replace(/\./g, '');
+            value = value.replace(/[^0-9]/g, '');
+            if (value) {
+                input.value = formatNumber(parseInt(value));
+            }
+        }
+
+        // Update All Views
+        function updateAllViews() {
+            renderKaryawan();
+            updateStats();
+            renderBonusTarget();
+            renderRiwayatBonusTarget();
+            renderRiwayatBonusKhusus();
+            renderRiwayatLembur();
+            renderPotonganAbsensi();
+            renderRiwayatPotongan();
+            renderSlipGaji();
+            initSearchableSelects();
+        }
+
+        // Save to storage
+        function saveData() {
+            storage.setItem('karyawan', JSON.stringify(karyawan));
+            storage.setItem('bonusTarget', JSON.stringify(bonusTarget));
+            storage.setItem('bonusKhusus', JSON.stringify(bonusKhusus));
+            storage.setItem('lembur', JSON.stringify(lembur));
+            storage.setItem('potonganAbsensi', JSON.stringify(potonganAbsensi));
+            storage.setItem('potonganKompensasi', JSON.stringify(potonganKompensasi));
+            storage.setItem('slipGaji', JSON.stringify(slipGaji));
+        }
+
+        // Stats
+        function updateStats() {
+            const periode = getPeriodeKey();
+            
+            document.getElementById('stat-karyawan').textContent = karyawan.length;
+            
+            let totalGaji = karyawan.reduce((sum, k) => sum + (k.gaji || 0) + (k.tunjangan || 0), 0);
+            document.getElementById('stat-gaji').textContent = formatRupiah(totalGaji);
+            
+            let totalBonus = bonusTarget.filter(b => b.periode === periode).reduce((sum, b) => sum + (b.nominal || 0), 0);
+            totalBonus += bonusKhusus.filter(b => b.periode === periode).reduce((sum, b) => sum + (b.nominal || 0), 0);
+            document.getElementById('stat-bonus').textContent = formatRupiah(totalBonus);
+            
+            let totalLembur = lembur.filter(l => l.periode === periode).reduce((sum, l) => sum + (l.total || 0), 0);
+            document.getElementById('stat-lembur').textContent = formatRupiah(totalLembur);
+        }
+
+        // Karyawan CRUD
+        function renderKaryawan() {
+            const filter = document.getElementById('filter-dept').value;
+            let filtered = karyawan;
+            if (filter) {
+                filtered = karyawan.filter(k => k.departemen === filter);
+            }
+
+            const tbody = document.getElementById('tabel-karyawan');
+            if (filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 40px; color: #999;">Tidak ada data karyawan</td></tr>';
+            } else {
+                tbody.innerHTML = filtered.map(k => `
+                    <tr>
+                        <td class="checkbox-cell"><input type="checkbox" class="karyawan-check" value="${k.id}" onchange="updateSelectedCount()"></td>
+                        <td>${k.id}</td>
+                        <td>${k.nama}</td>
+                        <td>${k.jabatan}</td>
+                        <td>${k.departemen}</td>
+                        <td>${formatRupiah(k.gaji)}</td>
+                        <td>${formatRupiah(k.tunjangan)}</td>
+                        <td>
+                            <button class="btn btn-primary btn-sm" onclick="editKaryawan('${k.id}')">✏️</button>
+                            <button class="btn btn-danger btn-sm" onclick="hapusKaryawan('${k.id}')">🗑️</button>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+            document.getElementById('jumlah-karyawan').textContent = filtered.length;
+        }
+
+        function filterKaryawan() {
+            renderKaryawan();
+        }
+
+        function simpanKaryawan() {
+            const newKaryawan = {
+                id: document.getElementById('input-id').value,
+                nama: document.getElementById('input-nama').value,
+                jabatan: document.getElementById('input-jabatan').value,
+                departemen: document.getElementById('input-departemen').value,
+                gaji: parseNumber(document.getElementById('input-gaji').value) || 0,
+                tunjangan: parseNumber(document.getElementById('input-tunjangan').value) || 0
+            };
+
+            if (!newKaryawan.id || !newKaryawan.nama) {
+                showAlert('ID dan Nama harus diisi!', 'warning');
+                return;
+            }
+
+            if (karyawan.find(k => k.id === newKaryawan.id)) {
+                showAlert('ID sudah ada!', 'error');
+                return;
+            }
+
+            karyawan.push(newKaryawan);
+            saveData();
+            closeModal('modal-tambah-karyawan');
+            
+            // Reset form
+            document.getElementById('input-id').value = '';
+            document.getElementById('input-nama').value = '';
+            document.getElementById('input-jabatan').value = '';
+            document.getElementById('input-gaji').value = '';
+            document.getElementById('input-tunjangan').value = '';
+            
+            updateAllViews();
+        }
+
+        function editKaryawan(id) {
+            const k = karyawan.find(k => k.id === id);
+            if (!k) return;
+
+            document.getElementById('edit-id').value = k.id;
+            document.getElementById('edit-nama').value = k.nama;
+            document.getElementById('edit-jabatan').value = k.jabatan;
+            document.getElementById('edit-departemen').value = k.departemen;
+            document.getElementById('edit-gaji').value = k.gaji;
+            document.getElementById('edit-tunjangan').value = k.tunjangan;
+
+            openModal('modal-edit-karyawan');
+        }
+
+        function updateKaryawan() {
+            const id = document.getElementById('edit-id').value;
+            const idx = karyawan.findIndex(k => k.id === id);
+            if (idx === -1) return;
+
+            karyawan[idx] = {
+                id: id,
+                nama: document.getElementById('edit-nama').value,
+                jabatan: document.getElementById('edit-jabatan').value,
+                departemen: document.getElementById('edit-departemen').value,
+                gaji: parseNumber(document.getElementById('edit-gaji').value) || 0,
+                tunjangan: parseNumber(document.getElementById('edit-tunjangan').value) || 0
+            };
+
+            saveData();
+            closeModal('modal-edit-karyawan');
+            updateAllViews();
+        }
+
+        function hapusKaryawan(id) {
+            showConfirm('Hapus karyawan ini?', () => {
+                karyawan = karyawan.filter(k => k.id !== id);
+                saveData();
+                updateAllViews();
+            });
+        }
+
+        function toggleSelectAll() {
+            const checkAll = document.getElementById('select-all').checked;
+            document.querySelectorAll('.karyawan-check').forEach(c => c.checked = checkAll);
+            updateSelectedCount();
+        }
+
+        function updateSelectedCount() {
+            const count = document.querySelectorAll('.karyawan-check:checked').length;
+            document.getElementById('selected-count').textContent = count;
+        }
+
+        function hapusKaryawanTerpilih() {
+            const checked = document.querySelectorAll('.karyawan-check:checked');
+            if (checked.length === 0) {
+                showAlert('Pilih karyawan yang akan dihapus!', 'warning');
+                return;
+            }
+            if (!confirm(`Hapus ${checked.length} karyawan terpilih?`)) return;
+
+            const ids = Array.from(checked).map(c => c.value);
+            karyawan = karyawan.filter(k => !ids.includes(k.id));
+            saveData();
+            updateAllViews();
+        }
+
+        // Bonus Target
+        function renderBonusTarget() {
+            const tbody = document.getElementById('tabel-bonus-target');
+            if (karyawan.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #999;">Tidak ada karyawan</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = karyawan.map(k => {
+                const periode = getPeriodeKey();
+                const existing = bonusTarget.find(b => b.karyawanId === k.id && b.periode === periode);
+                const nominalFormatted = formatNumber(existing?.nominal || 0);
+                return `
+                    <tr>
+                        <td>${k.nama} (${k.id})</td>
+                        <td><input type="text" class="form-control" id="persen-${k.id}" value="${existing?.persentase || 100}" style="width: 80px;" oninput="updatePersentaseOtomatis('${k.id}')"> %</td>
+                        <td><input type="text" class="form-control bonus-nominal" id="nominal-${k.id}" value="${nominalFormatted}" oninput="formatNominalInput(this); updateNominalDariPersen('${k.id}')"></td>
+                        <td style="text-align: center;">
+                            <input type="checkbox" id="lock-${k.id}" class="lock-checkbox" title="Kunci agar tidak berubah otomatis">
+                            <label for="lock-${k.id}" style="margin-left: 5px; cursor: pointer;">🔒</label>
+                        </td>
+                        <td>
+                            <button class="btn btn-success btn-sm" onclick="simpanBonusTargetIndividu('${k.id}')">💾</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function hitungDistribusiBonus() {
+            const total = parseNumber(document.getElementById('total-bonus-target').value) || 0;
+            if (karyawan.length === 0) return;
+
+            // Bagi rata nominal, sisa ke baris teratas
+            const perOrang = Math.floor(total / karyawan.length);
+            const sisaNominal = total - (perOrang * karyawan.length);
+
+            // Bagi rata persentase dengan 2 desimal, sisa ke baris teratas
+            const persenExact = 100 / karyawan.length;
+            const persenBase = Math.floor(persenExact * 100) / 100; // 2 desimal ke bawah
+
+            // Hitung berapa baris yang perlu dapat tambahan 0.01%
+            const totalPersenBase = persenBase * karyawan.length;
+            const sisaPersen = Math.round((100 - totalPersenBase) * 100) / 100;
+            const jumlahBarisBonus = Math.round(sisaPersen / 0.01);
+
+            karyawan.forEach((k, index) => {
+                // Sisa nominal diberikan ke baris teratas
+                const nominal = perOrang + (index < sisaNominal ? 1 : 0);
+
+                // Sisa persentase diberikan ke baris teratas
+                const persen = persenBase + (index < jumlahBarisBonus ? 0.01 : 0);
+
+                document.getElementById('persen-' + k.id).value = Math.round(persen * 100) / 100;
+                document.getElementById('nominal-' + k.id).value = formatNumber(nominal);
+            });
+        }
+
+        function updatePersentaseOtomatis(editedId) {
+            const total = parseNumber(document.getElementById('total-bonus-target').value) || 0;
+            if (karyawan.length <= 1 || total === 0) return;
+
+            const editedPersen = parseFloat(document.getElementById('persen-' + editedId).value) || 0;
+
+            // Filter karyawan yang tidak dikunci dan bukan yang sedang diedit
+            const otherKaryawan = karyawan.filter(k => {
+                if (k.id === editedId) return false;
+                const lockCheckbox = document.getElementById('lock-' + k.id);
+                return !lockCheckbox || !lockCheckbox.checked;
+            });
+
+            // Hitung total persentase dari yang dikunci
+            const lockedKaryawan = karyawan.filter(k => {
+                if (k.id === editedId) return false;
+                const lockCheckbox = document.getElementById('lock-' + k.id);
+                return lockCheckbox && lockCheckbox.checked;
+            });
+
+            let totalLockedPersen = 0;
+            lockedKaryawan.forEach(k => {
+                const persen = parseFloat(document.getElementById('persen-' + k.id).value) || 0;
+                totalLockedPersen += persen;
+            });
+
+            const sisaPersen = 100 - editedPersen - totalLockedPersen;
+
+            if (sisaPersen < 0) {
+                showImportNotification('Total persentase melebihi 100%! Silakan sesuaikan nilai yang dikunci.');
+                return;
+            }
+
+            if (otherKaryawan.length === 0) {
+                // Semua karyawan lain dikunci, hanya update nominal yang diedit
+                const editedNominal = Math.floor((total * editedPersen) / 100);
+                document.getElementById('nominal-' + editedId).value = formatNumber(editedNominal);
+                return;
+            }
+
+            // Bagi rata sisa persentase ke karyawan yang tidak dikunci, sisa ke baris teratas
+            const persenBase = Math.floor((sisaPersen / otherKaryawan.length) * 100) / 100;
+            const totalPersenBase = persenBase * otherKaryawan.length;
+            const sisaPersenKecil = Math.round((sisaPersen - totalPersenBase) * 100) / 100;
+            const jumlahBarisBonus = Math.round(sisaPersenKecil / 0.01);
+
+            let nominalTotal = 0;
+            otherKaryawan.forEach((k, index) => {
+                // Sisa persentase diberikan ke baris teratas
+                const persen = persenBase + (index < jumlahBarisBonus ? 0.01 : 0);
+
+                document.getElementById('persen-' + k.id).value = Math.round(persen * 100) / 100;
+
+                // Update nominal berdasarkan persentase baru
+                const nominal = Math.floor((total * persen) / 100);
+                document.getElementById('nominal-' + k.id).value = formatNumber(nominal);
+                nominalTotal += nominal;
+            });
+
+            // Update nominal untuk yang diedit juga
+            const editedNominal = Math.floor((total * editedPersen) / 100);
+            document.getElementById('nominal-' + editedId).value = formatNumber(editedNominal);
+        }
+
+        function updateNominalDariPersen(id) {
+            const total = parseNumber(document.getElementById('total-bonus-target').value) || 0;
+            const nominal = parseNumber(document.getElementById('nominal-' + id).value) || 0;
+
+            if (total === 0) return;
+
+            // Hitung persentase dari nominal (2 desimal)
+            const persen = Math.round((nominal / total) * 10000) / 100;
+            document.getElementById('persen-' + id).value = persen;
+
+            // Update persentase karyawan lain
+            updatePersentaseOtomatis(id);
+        }
+
+        function simpanBonusTargetIndividu(id, showNotification = true) {
+            const periode = getPeriodeKey();
+            const persenEl = document.getElementById('persen-' + id);
+            const nominalEl = document.getElementById('nominal-' + id);
+
+            if (!persenEl || !nominalEl) {
+                return false;
+            }
+
+            const persentase = parseFloat(persenEl.value) || 0;
+            const nominal = parseNumber(nominalEl.value) || 0;
+            const k = karyawan.find(kar => kar.id === id);
+
+            if (!k) {
+                return false;
+            }
+
+            const idx = bonusTarget.findIndex(b => b.karyawanId === id && b.periode === periode);
+            const data = {
+                karyawanId: id,
+                karyawanNama: k.nama,
+                periode: periode,
+                persentase: persentase,
+                nominal: nominal
+            };
+
+            if (idx >= 0) {
+                bonusTarget[idx] = data;
+            } else {
+                bonusTarget.push(data);
+            }
+
+            saveData();
+            renderRiwayatBonusTarget();
+            updateStats();
+            if (showNotification) {
+                showAlert('Bonus target tersimpan!', 'success');
+            }
+            return true;
+        }
+
+        function simpanSemuaBonusTarget() {
+            let count = 0;
+            karyawan.forEach(k => {
+                if (simpanBonusTargetIndividu(k.id, false)) {
+                    count++;
+                }
+            });
+            if (count > 0) {
+                showAlert('Semua bonus target tersimpan! (' + count + ' karyawan)', 'success');
+            } else {
+                showAlert('Tidak ada data bonus target untuk disimpan', 'warning');
+            }
+        }
+
+        function renderRiwayatBonusTarget() {
+            const periode = getPeriodeKey();
+            const filtered = bonusTarget.filter(b => b.periode === periode);
+            const tbody = document.getElementById('riwayat-bonus-target');
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #999;">Belum ada riwayat</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(b => `
+                <tr>
+                    <td>${b.karyawanNama}</td>
+                    <td>${getPeriode()}</td>
+                    <td>${b.persentase}%</td>
+                    <td>${formatRupiah(b.nominal)}</td>
+                    <td>
+                        <button class="btn btn-danger btn-sm" onclick="hapusBonusTarget('${b.karyawanId}')">🗑️</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function hapusBonusTarget(id) {
+            const periode = getPeriodeKey();
+            bonusTarget = bonusTarget.filter(b => !(b.karyawanId === id && b.periode === periode));
+            saveData();
+            renderRiwayatBonusTarget();
+            updateStats();
+        }
+
+        // Bonus Khusus
+        function tambahBonusKhusus() {
+            const karyawanId = document.getElementById('bonus-khusus-karyawan').value;
+            const nominal = parseNumber(document.getElementById('bonus-khusus-nominal').value) || 0;
+            const keterangan = document.getElementById('bonus-khusus-keterangan').value;
+
+            if (!karyawanId) {
+                showAlert('Pilih karyawan!', 'warning');
+                return;
+            }
+
+            if (nominal <= 0) {
+                showAlert('Masukkan nominal bonus!', 'warning');
+                return;
+            }
+
+            const k = karyawan.find(k => k.id === karyawanId);
+            bonusKhusus.push({
+                id: Date.now(),
+                karyawanId: karyawanId,
+                karyawanNama: k.nama,
+                periode: getPeriodeKey(),
+                nominal: nominal,
+                keterangan: keterangan
+            });
+
+            saveData();
+            document.getElementById('bonus-khusus-nominal').value = '';
+            document.getElementById('bonus-khusus-keterangan').value = '';
+            
+            // Reset select
+            const selectEl = document.getElementById('select-bonus-khusus');
+            selectEl.querySelector('.select-display span:first-child').textContent = 'Pilih Karyawan';
+            document.getElementById('bonus-khusus-karyawan').value = '';
+            
+            renderRiwayatBonusKhusus();
+            updateStats();
+        }
+
+        function renderRiwayatBonusKhusus() {
+            const periode = getPeriodeKey();
+            const filtered = bonusKhusus.filter(b => b.periode === periode);
+            const tbody = document.getElementById('riwayat-bonus-khusus');
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #999;">Belum ada riwayat</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(b => `
+                <tr>
+                    <td>${b.karyawanNama}</td>
+                    <td>${getPeriode()}</td>
+                    <td>${formatRupiah(b.nominal)}</td>
+                    <td>${b.keterangan}</td>
+                    <td>
+                        <button class="btn btn-danger btn-sm" onclick="hapusBonusKhusus(${b.id})">🗑️</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function hapusBonusKhusus(id) {
+            bonusKhusus = bonusKhusus.filter(b => b.id !== id);
+            saveData();
+            renderRiwayatBonusKhusus();
+            updateStats();
+        }
+
+        // Lembur
+        function tambahItemLembur() {
+            const container = document.getElementById('lembur-items');
+            const item = document.createElement('div');
+            item.className = 'lembur-item';
+            item.innerHTML = `
+                <input type="text" placeholder="Nama Barang/Kegiatan" class="lembur-nama">
+                <input type="number" placeholder="Qty" class="lembur-qty" value="1" onchange="hitungTotalLembur()">
+                <input type="number" placeholder="Harga" class="lembur-harga" value="0" onchange="hitungTotalLembur()">
+                <div class="lembur-subtotal">Rp 0</div>
+                <button class="btn btn-danger btn-sm" onclick="hapusItemLembur(this)">🗑️</button>
+            `;
+            container.appendChild(item);
+        }
+
+        function hapusItemLembur(btn) {
+            const items = document.querySelectorAll('.lembur-item');
+            if (items.length > 1) {
+                btn.closest('.lembur-item').remove();
+                hitungTotalLembur();
+            }
+        }
+
+        function hitungTotalLembur() {
+            let total = 0;
+            document.querySelectorAll('.lembur-item').forEach(item => {
+                const qty = parseInt(item.querySelector('.lembur-qty').value) || 0;
+                const harga = parseInt(item.querySelector('.lembur-harga').value) || 0;
+                const subtotal = qty * harga;
+                item.querySelector('.lembur-subtotal').textContent = formatRupiah(subtotal);
+                total += subtotal;
+            });
+            document.getElementById('total-lembur').textContent = formatRupiah(total);
+        }
+
+        function simpanLembur() {
+            const karyawanId = document.getElementById('lembur-karyawan').value;
+            const tanggal = document.getElementById('lembur-tanggal').value;
+
+            if (!karyawanId) {
+                showAlert('Pilih karyawan!', 'warning');
+                return;
+            }
+
+            const k = karyawan.find(k => k.id === karyawanId);
+            const items = [];
+            let total = 0;
+
+            document.querySelectorAll('.lembur-item').forEach(item => {
+                const nama = item.querySelector('.lembur-nama').value;
+                const qty = parseInt(item.querySelector('.lembur-qty').value) || 0;
+                const harga = parseInt(item.querySelector('.lembur-harga').value) || 0;
+                const subtotal = qty * harga;
+
+                if (nama) {
+                    items.push({ nama, qty, harga, subtotal });
+                    total += subtotal;
+                }
+            });
+
+            if (items.length === 0) {
+                showAlert('Tambahkan minimal 1 item lembur!', 'warning');
+                return;
+            }
+
+            lembur.push({
+                id: Date.now(),
+                karyawanId: karyawanId,
+                karyawanNama: k.nama,
+                periode: getPeriodeKey(),
+                tanggal: tanggal,
+                items: items,
+                total: total
+            });
+
+            saveData();
+
+            // Reset form
+            document.getElementById('lembur-items').innerHTML = `
+                <div class="lembur-item">
+                    <input type="text" placeholder="Nama Barang/Kegiatan" class="lembur-nama">
+                    <input type="number" placeholder="Qty" class="lembur-qty" value="1" onchange="hitungTotalLembur()">
+                    <input type="number" placeholder="Harga" class="lembur-harga" value="0" onchange="hitungTotalLembur()">
+                    <div class="lembur-subtotal">Rp 0</div>
+                    <button class="btn btn-danger btn-sm" onclick="hapusItemLembur(this)">🗑️</button>
+                </div>
+            `;
+            document.getElementById('total-lembur').textContent = 'Rp 0';
+            
+            // Reset select
+            const selectEl = document.getElementById('select-lembur');
+            selectEl.querySelector('.select-display span:first-child').textContent = 'Pilih Karyawan';
+            document.getElementById('lembur-karyawan').value = '';
+
+            renderRiwayatLembur();
+            updateStats();
+            showAlert('Lembur tersimpan!', 'success');
+        }
+
+        function renderRiwayatLembur() {
+            const periode = getPeriodeKey();
+            const filterKaryawan = document.getElementById('filter-lembur-karyawan').value;
+            
+            let filtered = lembur.filter(l => l.periode === periode);
+            if (filterKaryawan) {
+                filtered = filtered.filter(l => l.karyawanId === filterKaryawan);
+            }
+
+            const tbody = document.getElementById('riwayat-lembur');
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: #999;">Belum ada riwayat</td></tr>';
+                return;
+            }
+
+            let html = '';
+            filtered.forEach(l => {
+                l.items.forEach((item, idx) => {
+                    html += `
+                        <tr>
+                            ${idx === 0 ? `<td rowspan="${l.items.length}">${l.karyawanNama}</td>` : ''}
+                            ${idx === 0 ? `<td rowspan="${l.items.length}">${getPeriode()}</td>` : ''}
+                            ${idx === 0 ? `<td rowspan="${l.items.length}">${l.tanggal}</td>` : ''}
+                            <td>${item.nama}</td>
+                            <td>${item.qty}</td>
+                            <td>${formatRupiah(item.harga)}</td>
+                            <td>${formatRupiah(item.subtotal)}</td>
+                            ${idx === 0 ? `<td rowspan="${l.items.length}">
+                                <button class="btn btn-danger btn-sm" onclick="hapusLembur(${l.id})">🗑️</button>
+                            </td>` : ''}
+                        </tr>
+                    `;
+                });
+            });
+
+            tbody.innerHTML = html;
+        }
+
+        function hapusLembur(id) {
+            lembur = lembur.filter(l => l.id !== id);
+            saveData();
+            renderRiwayatLembur();
+            updateStats();
+        }
+
+        // Potongan Absensi
+        function renderPotonganAbsensi() {
+            const tbody = document.getElementById('tabel-potongan-absensi');
+            const searchQuery = (document.getElementById('search-potongan-absensi')?.value || '').toLowerCase().trim();
+
+            if (karyawan.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #999;">Tidak ada karyawan</td></tr>';
+                return;
+            }
+
+            const periode = getPeriodeKey();
+            let filteredKaryawan = karyawan;
+
+            if (searchQuery) {
+                filteredKaryawan = karyawan.filter(k =>
+                    k.nama.toLowerCase().includes(searchQuery) ||
+                    k.id.toLowerCase().includes(searchQuery)
+                );
+            }
+
+            if (filteredKaryawan.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #999;">Tidak ada hasil pencarian</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = filteredKaryawan.map(k => {
+                const existing = potonganAbsensi.find(p => p.karyawanId === k.id && p.periode === periode);
+                const alpa = existing?.alpa || 0;
+                const ijin = existing?.ijin || 0;
+                const tarif = existing?.tarif ?? DEFAULT_TARIF_POTONGAN_ABSENSI;
+                const potongan = (alpa + ijin) * tarif;
+                return `
+                    <tr>
+                        <td>${k.nama} (${k.id})</td>
+                        <td><input type="number" class="form-control" id="alpa-${k.id}" value="${alpa}" style="width: 80px;" onchange="hitungPotonganRow('${k.id}')"></td>
+                        <td><input type="number" class="form-control" id="ijin-${k.id}" value="${ijin}" style="width: 80px;" onchange="hitungPotonganRow('${k.id}')"></td>
+                        <td><input type="text" class="form-control" id="tarif-${k.id}" value="${formatNumber(tarif)}" style="width: 110px;" oninput="formatNominalInput(this)" onchange="hitungPotonganRow('${k.id}')"></td>
+                        <td id="potongan-${k.id}">${formatRupiah(potongan)}</td>
+                    </tr>
+                `;
+            }).join('');
+
+            hitungTotalPotonganAbsensi();
+        }
+
+        function filterPotonganAbsensi() {
+            renderPotonganAbsensi();
+        }
+
+        function hitungPotonganRow(id) {
+            const alpa = parseInt(document.getElementById('alpa-' + id).value) || 0;
+            const ijin = parseInt(document.getElementById('ijin-' + id).value) || 0;
+            const tarif = parseNumber(document.getElementById('tarif-' + id).value);
+            const potongan = (alpa + ijin) * tarif;
+            document.getElementById('potongan-' + id).textContent = formatRupiah(potongan);
+            hitungTotalPotonganAbsensi();
+
+            // Auto-save untuk karyawan ini
+            simpanPotonganAbsensiSingle(id, alpa, ijin, tarif, potongan);
+        }
+
+        function simpanPotonganAbsensiSingle(karyawanId, alpa, ijin, tarif, potongan) {
+            const periode = getPeriodeKey();
+            const k = karyawan.find(emp => emp.id === karyawanId);
+            if (!k) return;
+
+            const idx = potonganAbsensi.findIndex(p => p.karyawanId === karyawanId && p.periode === periode);
+            const data = {
+                karyawanId: karyawanId,
+                karyawanNama: k.nama,
+                periode: periode,
+                alpa: alpa,
+                ijin: ijin,
+                tarif: tarif,
+                potongan: potongan
+            };
+
+            if (idx >= 0) {
+                potonganAbsensi[idx] = data;
+            } else {
+                potonganAbsensi.push(data);
+            }
+
+            saveData();
+            renderRiwayatPotongan();
+        }
+
+        function hitungTotalPotonganAbsensi() {
+            let total = 0;
+            karyawan.forEach(k => {
+                const alpaEl = document.getElementById('alpa-' + k.id);
+                if (!alpaEl) return;
+                const alpa = parseInt(alpaEl.value) || 0;
+                const ijin = parseInt(document.getElementById('ijin-' + k.id)?.value) || 0;
+                const tarif = parseNumber(document.getElementById('tarif-' + k.id)?.value);
+                total += (alpa + ijin) * tarif;
+            });
+            document.getElementById('total-potongan-absensi').textContent = formatRupiah(total);
+        }
+
+        function simpanPotonganAbsensi() {
+            const periode = getPeriodeKey();
+
+            karyawan.forEach(k => {
+                const alpaEl = document.getElementById('alpa-' + k.id);
+                if (!alpaEl) return;
+                const alpa = parseInt(alpaEl.value) || 0;
+                const ijin = parseInt(document.getElementById('ijin-' + k.id).value) || 0;
+                const tarif = parseNumber(document.getElementById('tarif-' + k.id).value);
+                const potongan = (alpa + ijin) * tarif;
+
+                const idx = potonganAbsensi.findIndex(p => p.karyawanId === k.id && p.periode === periode);
+                const data = {
+                    karyawanId: k.id,
+                    karyawanNama: k.nama,
+                    periode: periode,
+                    alpa: alpa,
+                    ijin: ijin,
+                    tarif: tarif,
+                    potongan: potongan
+                };
+
+                if (idx >= 0) {
+                    potonganAbsensi[idx] = data;
+                } else {
+                    potonganAbsensi.push(data);
+                }
+            });
+
+            saveData();
+            renderRiwayatPotongan();
+            showAlert('Potongan absensi tersimpan!', 'success');
+        }
+
+        // Potongan Kompensasi
+        function tambahPotonganKompensasi() {
+            const karyawanId = document.getElementById('potongan-kompensasi-karyawan').value;
+            const nominal = parseNumber(document.getElementById('potongan-kompensasi-nominal').value) || 0;
+            const keterangan = document.getElementById('potongan-kompensasi-keterangan').value;
+
+            if (!karyawanId) {
+                showAlert('Pilih karyawan!', 'warning');
+                return;
+            }
+
+            if (nominal <= 0) {
+                showAlert('Masukkan nominal potongan!', 'warning');
+                return;
+            }
+
+            const k = karyawan.find(k => k.id === karyawanId);
+            potonganKompensasi.push({
+                id: Date.now(),
+                karyawanId: karyawanId,
+                karyawanNama: k.nama,
+                periode: getPeriodeKey(),
+                nominal: nominal,
+                keterangan: keterangan
+            });
+
+            saveData();
+            document.getElementById('potongan-kompensasi-nominal').value = '';
+            document.getElementById('potongan-kompensasi-keterangan').value = '';
+            
+            // Reset select
+            const selectEl = document.getElementById('select-potongan-kompensasi');
+            selectEl.querySelector('.select-display span:first-child').textContent = 'Pilih Karyawan';
+            document.getElementById('potongan-kompensasi-karyawan').value = '';
+
+            renderRiwayatPotongan();
+        }
+
+        function renderRiwayatPotongan() {
+            const periode = getPeriodeKey();
+            const tbody = document.getElementById('riwayat-potongan');
+
+            // Combine data
+            const combined = {};
+            
+            potonganAbsensi.filter(p => p.periode === periode).forEach(p => {
+                if (!combined[p.karyawanId]) {
+                    combined[p.karyawanId] = {
+                        nama: p.karyawanNama,
+                        alpa: 0,
+                        ijin: 0,
+                        potAbsensi: 0,
+                        potKompensasi: 0
+                    };
+                }
+                combined[p.karyawanId].alpa = p.alpa;
+                combined[p.karyawanId].ijin = p.ijin;
+                combined[p.karyawanId].potAbsensi = p.potongan;
+            });
+
+            potonganKompensasi.filter(p => p.periode === periode).forEach(p => {
+                if (!combined[p.karyawanId]) {
+                    combined[p.karyawanId] = {
+                        nama: p.karyawanNama,
+                        alpa: 0,
+                        ijin: 0,
+                        potAbsensi: 0,
+                        potKompensasi: 0
+                    };
+                }
+                combined[p.karyawanId].potKompensasi += p.nominal;
+            });
+
+            const entries = Object.entries(combined);
+            if (entries.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: #999;">Belum ada riwayat</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = entries.map(([id, data]) => {
+                const total = data.potAbsensi + data.potKompensasi;
+                return `
+                    <tr>
+                        <td>${data.nama}</td>
+                        <td>${getPeriode()}</td>
+                        <td>${data.alpa}</td>
+                        <td>${data.ijin}</td>
+                        <td>${formatRupiah(data.potAbsensi)}</td>
+                        <td>${formatRupiah(data.potKompensasi)}</td>
+                        <td>${formatRupiah(total)}</td>
+                        <td>
+                            <button class="btn btn-danger btn-sm" onclick="hapusPotongan('${id}')">🗑️</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function hapusPotongan(id) {
+            const periode = getPeriodeKey();
+            potonganAbsensi = potonganAbsensi.filter(p => !(p.karyawanId === id && p.periode === periode));
+            potonganKompensasi = potonganKompensasi.filter(p => !(p.karyawanId === id && p.periode === periode));
+            saveData();
+            renderPotonganAbsensi();
+            renderRiwayatPotongan();
+        }
+
+        // Slip Gaji
+        function generateSlipGaji() {
+            const karyawanId = document.getElementById('slip-gaji-karyawan').value;
+            if (!karyawanId) {
+                showAlert('Pilih karyawan!', 'warning');
+                return;
+            }
+
+            generateSlipGajiForKaryawan(karyawanId);
+            renderSlipGaji();
+            
+            // Reset select
+            const selectEl = document.getElementById('select-slip-gaji');
+            selectEl.querySelector('.select-display span:first-child').textContent = 'Pilih Karyawan';
+            document.getElementById('slip-gaji-karyawan').value = '';
+        }
+
+        function generateSemuaSlipGaji() {
+            karyawan.forEach(k => generateSlipGajiForKaryawan(k.id));
+            renderSlipGaji();
+            showAlert('Semua slip gaji berhasil di-generate!', 'success');
+        }
+
+        function generateSlipGajiForKaryawan(karyawanId) {
+            const periode = getPeriodeKey();
+            const k = karyawan.find(k => k.id === karyawanId);
+            if (!k) return;
+
+            // Check if already exists
+            const existing = slipGaji.findIndex(s => s.karyawanId === karyawanId && s.periode === periode);
+
+            // Calculate components
+            const gajiPokok = k.gaji || 0;
+            const tunjangan = k.tunjangan || 0;
+
+            // Bonus
+            const bt = bonusTarget.find(b => b.karyawanId === karyawanId && b.periode === periode);
+            const bonusTargetNominal = bt?.nominal || 0;
+            const bk = bonusKhusus.filter(b => b.karyawanId === karyawanId && b.periode === periode);
+            const bonusKhususTotal = bk.reduce((sum, b) => sum + b.nominal, 0);
+            const totalBonus = bonusTargetNominal + bonusKhususTotal;
+
+            // Lembur
+            const lemburData = lembur.filter(l => l.karyawanId === karyawanId && l.periode === periode);
+            const totalLembur = lemburData.reduce((sum, l) => sum + l.total, 0);
+
+            // Potongan
+            const pa = potonganAbsensi.find(p => p.karyawanId === karyawanId && p.periode === periode);
+            const alpa = pa?.alpa || 0;
+            const ijin = pa?.ijin || 0;
+            const tarifPotongan = pa?.tarif ?? DEFAULT_TARIF_POTONGAN_ABSENSI;
+            // Alpa dan Ijin sama-sama dipotong sebesar tarif (dihitung ulang agar konsisten dg data lama)
+            const potonganAbsensiNominal = (alpa + ijin) * tarifPotongan;
+            const pk = potonganKompensasi.filter(p => p.karyawanId === karyawanId && p.periode === periode);
+            const potonganKompensasiTotal = pk.reduce((sum, p) => sum + p.nominal, 0);
+            const totalPotongan = potonganAbsensiNominal + potonganKompensasiTotal;
+
+            // Total
+            const totalPendapatan = gajiPokok + tunjangan + totalBonus + totalLembur;
+            const gajiBersih = totalPendapatan - totalPotongan;
+
+            const slip = {
+                id: `SLIP-${karyawanId}-${periode}`,
+                karyawanId: karyawanId,
+                karyawanNama: k.nama,
+                jabatan: k.jabatan,
+                departemen: k.departemen,
+                periode: periode,
+                gajiPokok: gajiPokok,
+                tunjangan: tunjangan,
+                bonusTarget: bonusTargetNominal,
+                bonusKhusus: bk,
+                bonusKhususTotal: bonusKhususTotal,
+                totalBonus: totalBonus,
+                lemburData: lemburData,
+                totalLembur: totalLembur,
+                alpa: alpa,
+                ijin: ijin,
+                tarifPotongan: tarifPotongan,
+                potonganAbsensi: potonganAbsensiNominal,
+                potonganKompensasi: pk,
+                potonganKompensasiTotal: potonganKompensasiTotal,
+                totalPotongan: totalPotongan,
+                totalPendapatan: totalPendapatan,
+                gajiBersih: gajiBersih,
+                status: 'belum',
+                buktiTransfer: null,
+                createdAt: new Date().toISOString()
+            };
+
+            if (existing >= 0) {
+                slip.status = slipGaji[existing].status;
+                slip.buktiTransfer = slipGaji[existing].buktiTransfer;
+                slipGaji[existing] = slip;
+            } else {
+                slipGaji.push(slip);
+            }
+
+            saveData();
+        }
+
+        function renderSlipGaji() {
+            const periode = getPeriodeKey();
+            let filtered = slipGaji.filter(s => s.periode === periode);
+
+            if (currentFilterStatus === 'dibayar') {
+                filtered = filtered.filter(s => s.status === 'dibayar');
+            } else if (currentFilterStatus === 'belum') {
+                filtered = filtered.filter(s => s.status === 'belum');
+            }
+
+            const tbody = document.getElementById('daftar-slip-gaji');
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 40px; color: #999;">
+                            Belum ada slip gaji yang di-generate untuk periode ini.<br>
+                            Klik "Generate" atau "Generate Semua" untuk membuat slip gaji.
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(s => `
+                <tr>
+                    <td>${s.id}</td>
+                    <td>${s.karyawanNama}</td>
+                    <td>${getPeriode()}</td>
+                    <td>${formatRupiah(s.gajiBersih)}</td>
+                    <td>
+                        <span class="badge ${s.status === 'dibayar' ? 'badge-success' : 'badge-warning'}">
+                            ${s.status === 'dibayar' ? 'Sudah Dibayar' : 'Belum Dibayar'}
+                        </span>
+                    </td>
+                    <td>
+                        <button class="btn btn-primary btn-sm" onclick="previewSlipGaji('${s.id}')">👁️ Preview</button>
+                        <button class="btn btn-danger btn-sm" onclick="hapusSlipGaji('${s.id}')">🗑️</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function filterSlipGaji(status, btn) {
+            currentFilterStatus = status;
+            document.querySelectorAll('.status-filter').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            renderSlipGaji();
+        }
+
+        function previewSlipGaji(id) {
+            const slip = slipGaji.find(s => s.id === id);
+            if (!slip) return;
+
+            currentSlipId = id;
+
+            // Generate lembur details HTML sebagai section terpisah
+            let lemburSectionHtml = '';
+            if (slip.lemburData && slip.lemburData.length > 0) {
+                lemburSectionHtml = `
+                    <div class="slip-lembur-section">
+                        <div class="slip-lembur-header">⏰ RINCIAN LEMBUR</div>
+                        <div class="slip-lembur-body">
+                            <table class="lembur-details-table">
+                                <thead>
+                                    <tr>
+                                        <th>Barang yang Dihasilkan</th>
+                                        <th>Tanggal</th>
+                                        <th>Qty</th>
+                                        <th>Harga</th>
+                                        <th>Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>`;
+
+                slip.lemburData.forEach(l => {
+                    l.items.forEach(item => {
+                        lemburSectionHtml += `
+                            <tr>
+                                <td>${item.nama}</td>
+                                <td>${l.tanggal}</td>
+                                <td>${item.qty}</td>
+                                <td>${formatRupiah(item.harga)}</td>
+                                <td>${formatRupiah(item.subtotal)}</td>
+                            </tr>`;
+                    });
+                });
+
+                lemburSectionHtml += `
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>`;
+            }
+
+            // Generate bonus khusus details
+            let bonusKhususHtml = '';
+            if (slip.bonusKhusus && slip.bonusKhusus.length > 0) {
+                slip.bonusKhusus.forEach(b => {
+                    bonusKhususHtml += `<div class="slip-row sub-item"><span>• ${b.keterangan}</span><span>${formatRupiah(b.nominal)}</span></div>`;
+                });
+            }
+
+            // Generate potongan kompensasi details
+            let potKompensasiHtml = '';
+            if (slip.potonganKompensasi && slip.potonganKompensasi.length > 0) {
+                slip.potonganKompensasi.forEach(p => {
+                    potKompensasiHtml += `<div class="slip-row sub-item"><span>• ${p.keterangan}</span><span>${formatRupiah(p.nominal)}</span></div>`;
+                });
+            }
+
+            // Generate logo HTML - use uploaded base64 or placeholder
+            const logoHtml = companyLogo
+                ? `<img src="${companyLogo}" alt="Company Logo" class="company-logo">`
+                : `<div class="company-logo" style="display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #1e3a5f, #2d5a87); color: white; font-weight: bold; font-size: 14px; text-align: center;">LOGO</div>`;
+
+            const html = `
+                <div class="slip-gaji" id="slip-gaji-print">
+                    <div class="slip-header">
+                        ${logoHtml}
+                        <div class="company-info">
+                            <h2>PT. GALAXY FOOD INDONESIA</h2>
+                            <p class="company-address">📍 JL. Manunggal No.9 Gedongombo, Semanding, Tuban</p>
+                        </div>
+                        <div class="slip-periode-box">
+                            <div class="slip-badge">SLIP GAJI</div>
+                            <div class="periode-label" style="margin-top: 10px;">Periode</div>
+                            <div class="periode-value">${getPeriode()}</div>
+                        </div>
+                    </div>
+
+                    <div class="slip-body-content">
+                    <div class="slip-info">
+                        <div class="slip-info-item">
+                            <label>ID Karyawan</label>
+                            <span>: ${slip.karyawanId}</span>
+                        </div>
+                        <div class="slip-info-item">
+                            <label>Departemen</label>
+                            <span>: ${slip.departemen}</span>
+                        </div>
+                        <div class="slip-info-item">
+                            <label>Nama</label>
+                            <span>: ${slip.karyawanNama}</span>
+                        </div>
+                        <div class="slip-info-item">
+                            <label>Jabatan</label>
+                            <span>: ${slip.jabatan}</span>
+                        </div>
+                        <div class="slip-info-item">
+                            <label>Tanggal Cetak</label>
+                            <span>: ${new Date().toLocaleDateString('id-ID')}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="slip-details">
+                        <div class="slip-section">
+                            <div class="slip-section-header">💰 PENDAPATAN</div>
+                            <div class="slip-section-body">
+                                <div class="slip-row">
+                                    <span>Gaji Pokok</span>
+                                    <span>${formatRupiah(slip.gajiPokok)}</span>
+                                </div>
+                                <div class="slip-row">
+                                    <span>Tunjangan</span>
+                                    <span>${formatRupiah(slip.tunjangan)}</span>
+                                </div>
+                                <div class="slip-row">
+                                    <span>Bonus Target</span>
+                                    <span>${formatRupiah(slip.bonusTarget)}</span>
+                                </div>
+                                ${slip.bonusKhususTotal > 0 ? `
+                                <div class="slip-row">
+                                    <span>Bonus Khusus</span>
+                                    <span>${formatRupiah(slip.bonusKhususTotal)}</span>
+                                </div>
+                                ${bonusKhususHtml}
+                                ` : ''}
+                                <div class="slip-row">
+                                    <span><strong>Lembur</strong></span>
+                                    <span><strong>${formatRupiah(slip.totalLembur)}</strong></span>
+                                </div>
+                                <div class="slip-row total">
+                                    <span><strong>Total Pendapatan</strong></span>
+                                    <span><strong>${formatRupiah(slip.totalPendapatan)}</strong></span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="slip-section">
+                            <div class="slip-section-header potongan">➖ POTONGAN</div>
+                            <div class="slip-section-body">
+                                <div class="slip-row">
+                                    <span>Potongan Absensi</span>
+                                    <span>${formatRupiah(slip.potonganAbsensi)}</span>
+                                </div>
+                                <div class="slip-row sub-item">
+                                    <span>Alpa: ${slip.alpa} hari × ${formatRupiah(slip.tarifPotongan ?? DEFAULT_TARIF_POTONGAN_ABSENSI)}</span>
+                                    <span>${formatRupiah(slip.alpa * (slip.tarifPotongan ?? DEFAULT_TARIF_POTONGAN_ABSENSI))}</span>
+                                </div>
+                                <div class="slip-row sub-item">
+                                    <span>Ijin: ${slip.ijin} hari × ${formatRupiah(slip.tarifPotongan ?? DEFAULT_TARIF_POTONGAN_ABSENSI)}</span>
+                                    <span>${formatRupiah(slip.ijin * (slip.tarifPotongan ?? DEFAULT_TARIF_POTONGAN_ABSENSI))}</span>
+                                </div>
+                                ${slip.potonganKompensasiTotal > 0 ? `
+                                <div class="slip-row">
+                                    <span>Potongan Kompensasi</span>
+                                    <span>${formatRupiah(slip.potonganKompensasiTotal)}</span>
+                                </div>
+                                ${potKompensasiHtml}
+                                ` : `
+                                <div class="slip-row">
+                                    <span>Potongan Kompensasi</span>
+                                    <span>${formatRupiah(0)}</span>
+                                </div>
+                                `}
+                                <div class="slip-row total">
+                                    <span><strong>Total Potongan</strong></span>
+                                    <span><strong>${formatRupiah(slip.totalPotongan)}</strong></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    ${lemburSectionHtml}
+
+                    <div class="slip-total">
+                        <div class="row">
+                            <span>Total Pendapatan</span>
+                            <span>${formatRupiah(slip.totalPendapatan)}</span>
+                        </div>
+                        <div class="row">
+                            <span>Total Potongan</span>
+                            <span>(${formatRupiah(slip.totalPotongan)})</span>
+                        </div>
+                        <div class="row grand-total">
+                            <span>GAJI BERSIH</span>
+                            <span>${formatRupiah(slip.gajiBersih)}</span>
+                        </div>
+                    </div>
+
+                    <div class="slip-footer">
+                        <div class="signature-box">
+                            <p>Diterima oleh,</p>
+                            <div class="line">${slip.karyawanNama}</div>
+                        </div>
+                        <div class="signature-box">
+                            <p>Disetujui oleh,</p>
+                            ${companyStempel
+                                ? `<img src="${companyStempel}" alt="Stempel Finance" class="stamp-image">`
+                                : `<div class="stamp-image" style="width: 90px; height: 90px; margin: 15px auto 10px; border: 2px dashed #ccc; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #999; font-size: 10px; text-align: center;">STEMPEL</div>`}
+                            <div class="line">Finance Manager</div>
+                        </div>
+                    </div>
+
+                    <div class="slip-note">
+                        📋 <strong>Keterangan:</strong> Slip gaji ini merupakan bukti resmi pembayaran gaji karyawan PT. Galaxy Food Indonesia.
+                        Harap disimpan sebagai arsip. Jika ada pertanyaan, silahkan hubungi bagian HRD/Finance.
+                    </div>
+
+                    ${slip.buktiTransfer ? `
+                    <div style="margin-top: 25px; padding: 20px; background: #f8f9fa; border-radius: 10px; border: 1px solid #e0e7ee;">
+                        <h4 style="margin-bottom: 15px; color: #1e3a5f; font-size: 14px;">📎 Bukti Transfer:</h4>
+                        <img src="${slip.buktiTransfer}" style="max-width: 100%; max-height: 280px; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                    </div>
+                    ` : ''}
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('slip-gaji-content').innerHTML = html;
+            openModal('modal-slip-gaji');
+        }
+
+        function exportSlipGajiJPG() {
+            const element = document.getElementById('slip-gaji-print');
+            if (!element) {
+                showAlert('Slip gaji tidak ditemukan!', 'error');
+                return;
+            }
+
+            const slip = slipGaji.find(s => s.id === currentSlipId);
+            if (!slip) {
+                showAlert('Data slip gaji tidak ditemukan!', 'error');
+                return;
+            }
+
+            // Show loading indicator
+            const loadingDiv = document.createElement('div');
+            loadingDiv.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.8); color: white; padding: 20px 40px; border-radius: 10px; z-index: 10000; font-size: 16px;';
+            loadingDiv.textContent = '⏳ Mengexport slip gaji...';
+            document.body.appendChild(loadingDiv);
+
+            html2canvas(element, {
+                scale: 2,
+                backgroundColor: '#ffffff',
+                useCORS: true,
+                logging: false,
+                allowTaint: false
+            }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = `SlipGaji_${slip.karyawanNama}_${getPeriode().replace(/\s/g, '_')}.jpg`;
+                link.href = canvas.toDataURL('image/jpeg', 0.9);
+                link.click();
+
+                document.body.removeChild(loadingDiv);
+                showAlert('Slip gaji berhasil diexport!', 'success');
+            }).catch(err => {
+                console.error('Export error:', err);
+                document.body.removeChild(loadingDiv);
+                showAlert('Terjadi kesalahan saat export: ' + err.message, 'error');
+            });
+        }
+
+        function uploadBuktiTransfer() {
+            openModal('modal-bukti-transfer');
+        }
+
+        function simpanBuktiTransfer() {
+            const input = document.getElementById('input-bukti-transfer');
+            if (!input.files[0]) {
+                showAlert('Pilih gambar bukti transfer!', 'warning');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const slip = slipGaji.find(s => s.id === currentSlipId);
+                if (slip) {
+                    slip.buktiTransfer = e.target.result;
+                    slip.status = 'dibayar';
+                    saveData();
+                    closeModal('modal-bukti-transfer');
+                    previewSlipGaji(currentSlipId);
+                    renderSlipGaji();
+                }
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+
+        // Preview bukti transfer
+        document.getElementById('input-bukti-transfer')?.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('preview-bukti-transfer').innerHTML = `
+                        <img src="${e.target.result}" style="max-width: 100%; max-height: 200px; border-radius: 5px;">
+                    `;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        function hapusSlipGaji(id) {
+            if (!confirm('Hapus slip gaji ini?')) return;
+            slipGaji = slipGaji.filter(s => s.id !== id);
+            saveData();
+            renderSlipGaji();
+        }
+
+        // Import/Export
+        function importExcel() {
+            document.getElementById('import-file').click();
+        }
+
+        function handleImport(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                let imported = 0;
+                const fileName = file.name.toLowerCase();
+
+                if (fileName.endsWith('.xlsx') || fileName.endsWith('.xls')) {
+                    // Handle XLSX/XLS file
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array', defval: '' });
+                    const sheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[sheetName];
+                    const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '' });
+
+                    for (let i = 1; i < jsonData.length; i++) {
+                        const cols = jsonData[i];
+                        // Hanya perlu ID yang wajib ada, kolom lain boleh kosong
+                        if (cols && cols[0] && String(cols[0]).trim()) {
+                            const newK = {
+                                id: String(cols[0] || '').trim(),
+                                nama: String(cols[1] || '').trim(),
+                                jabatan: String(cols[2] || '').trim(),
+                                departemen: String(cols[3] || '').trim(),
+                                gaji: parseInt(cols[4]) || 0,
+                                tunjangan: parseInt(cols[5]) || 0
+                            };
+
+                            if (!karyawan.find(k => k.id === newK.id)) {
+                                karyawan.push(newK);
+                                imported++;
+                            }
+                        }
+                    }
+                } else {
+                    // Handle CSV file
+                    const text = e.target.result;
+                    const lines = text.split('\n');
+
+                    for (let i = 1; i < lines.length; i++) {
+                        const cols = lines[i].split(',');
+                        // Hanya perlu ID yang wajib ada, kolom lain boleh kosong
+                        if (cols[0] && cols[0].trim()) {
+                            const newK = {
+                                id: (cols[0] || '').trim(),
+                                nama: (cols[1] || '').trim(),
+                                jabatan: (cols[2] || '').trim(),
+                                departemen: (cols[3] || '').trim(),
+                                gaji: parseInt(cols[4]) || 0,
+                                tunjangan: parseInt(cols[5]) || 0
+                            };
+
+                            if (!karyawan.find(k => k.id === newK.id)) {
+                                karyawan.push(newK);
+                                imported++;
+                            }
+                        }
+                    }
+                }
+
+                saveData();
+                updateAllViews();
+                showImportNotification(`${imported} data karyawan berhasil diimport!`);
+            };
+
+            const fileName = file.name.toLowerCase();
+            if (fileName.endsWith('.xlsx') || fileName.endsWith('.xls')) {
+                reader.readAsArrayBuffer(file);
+            } else {
+                reader.readAsText(file);
+            }
+            event.target.value = '';
+        }
+
+        function exportExcel() {
+            // Create data array with headers
+            const data = [
+                ['ID', 'Nama', 'Jabatan', 'Departemen', 'Gaji Pokok', 'Tunjangan']
+            ];
+
+            karyawan.forEach(k => {
+                data.push([k.id, k.nama, k.jabatan, k.departemen, k.gaji, k.tunjangan]);
+            });
+
+            // Create workbook and worksheet
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.aoa_to_sheet(data);
+
+            // Set column widths
+            ws['!cols'] = [
+                { wch: 12 },  // ID
+                { wch: 25 },  // Nama
+                { wch: 15 },  // Jabatan
+                { wch: 15 },  // Departemen
+                { wch: 15 },  // Gaji Pokok
+                { wch: 15 }   // Tunjangan
+            ];
+
+            XLSX.utils.book_append_sheet(wb, ws, 'Data Karyawan');
+
+            // Generate and download file
+            XLSX.writeFile(wb, 'data_karyawan.xlsx');
+        }
+
+        function downloadTemplate() {
+            // Create template data with headers and sample rows
+            const data = [
+                ['ID', 'Nama', 'Jabatan', 'Departemen', 'Gaji Pokok', 'Tunjangan'],
+                ['KRY001', 'John Doe', 'Staff', 'Produksi', 3000000, 500000],
+                ['KRY002', 'Jane Smith', 'Supervisor', 'QC', 4500000, 750000]
+            ];
+
+            // Create workbook and worksheet
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.aoa_to_sheet(data);
+
+            // Set column widths
+            ws['!cols'] = [
+                { wch: 12 },  // ID
+                { wch: 25 },  // Nama
+                { wch: 15 },  // Jabatan
+                { wch: 15 },  // Departemen
+                { wch: 15 },  // Gaji Pokok
+                { wch: 15 }   // Tunjangan
+            ];
+
+            XLSX.utils.book_append_sheet(wb, ws, 'Template Karyawan');
+
+            // Generate and download file
+            XLSX.writeFile(wb, 'template_karyawan.xlsx');
+        }
+
+        // Backup/Restore
+        function backupData() {
+            const data = {
+                karyawan,
+                bonusTarget,
+                bonusKhusus,
+                lembur,
+                potonganAbsensi,
+                potonganKompensasi,
+                slipGaji,
+                companyLogo,
+                companyStempel,
+                exportDate: new Date().toISOString()
+            };
+
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `backup_payroll_${new Date().toISOString().split('T')[0]}.json`;
+            link.click();
+        }
+
+        function restoreData() {
+            const input = document.getElementById('restore-file');
+            if (!input.files[0]) {
+                showAlert('Pilih file backup!', 'warning');
+                return;
+            }
+
+            showConfirm('Data saat ini akan ditimpa. Lanjutkan?', () => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    try {
+                        const data = JSON.parse(e.target.result);
+                        karyawan = data.karyawan || [];
+                        bonusTarget = data.bonusTarget || [];
+                        bonusKhusus = data.bonusKhusus || [];
+                        lembur = data.lembur || [];
+                        potonganAbsensi = data.potonganAbsensi || [];
+                        potonganKompensasi = data.potonganKompensasi || [];
+                        slipGaji = data.slipGaji || [];
+
+                        // Restore logo and stempel if available
+                        if (data.companyLogo) {
+                            companyLogo = data.companyLogo;
+                            storage.setItem('companyLogo', companyLogo);
+                        }
+                        if (data.companyStempel) {
+                            companyStempel = data.companyStempel;
+                            storage.setItem('companyStempel', companyStempel);
+                        }
+
+                        saveData();
+                        updateAllViews();
+                        initLogoStempelPreview();
+                        showAlert('Data berhasil direstore!', 'success');
+                    } catch (err) {
+                        showAlert('File tidak valid!', 'error');
+                    }
+                };
+                reader.readAsText(input.files[0]);
+            });
+        }
+    </script>
+
+
+
+
+
+
+
+
+
+
+</body></html>
